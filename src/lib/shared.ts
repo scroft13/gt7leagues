@@ -21,13 +21,13 @@ export type UserCar = {
 
 export type UserInfo = {
   created_at: string;
-  id: string;
   user_id: string;
   carsOwned: UserCar[];
   carsWanted: UserCar[];
+  leagues: League[];
 };
 
-export type Events = {
+export type CalendarEvents = {
   id: number;
   start: Date;
   end: Date;
@@ -40,7 +40,7 @@ export type Events = {
   backgroundColor: string;
 };
 
-export type PublicEvent = {
+export type Events = {
   id: number;
   startDate: Date;
   startTime: string;
@@ -55,7 +55,7 @@ export type PublicEvent = {
   email?: string;
   eventInfo: string;
 };
-export type PublicServerEvent = {
+export type ServerEvent = {
   user_id: string | undefined;
   id: number;
   start_date: Date;
@@ -70,6 +70,16 @@ export type PublicServerEvent = {
   discord_server?: string;
   email?: string;
   event_info: string;
+};
+
+export type League = {
+  id: number;
+  name: string;
+  info: string;
+  mainLocation: string;
+  publicEvents: Event[];
+  privateEvents: Event[];
+  authorizedUserIds: number;
 };
 
 export async function getJson<T>(url: string): Promise<T> {

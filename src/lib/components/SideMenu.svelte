@@ -6,8 +6,18 @@
     DialogOverlay,
   } from '@rgossiaux/svelte-headlessui';
   import { XIcon } from '@rgossiaux/svelte-heroicons/solid';
+  import { user } from '../../store';
+  import { onMount } from 'svelte';
 
   export let sideMenuIsOpen: boolean = false;
+
+  let username: string;
+
+  onMount(() => {
+    user?.subscribe((e) => {
+      username = e?.username;
+    });
+  });
 </script>
 
 <TransitionRoot as="div" show={sideMenuIsOpen}>
@@ -45,12 +55,10 @@
         </button>
       </div>
       <div class="mt-4 mx-4 flex flex-col">
-        <a href="/gt7/leagues">Leagues</a>
-        <a href="/gt7/cars">My Cars</a>
-        <a href="/gt7/cars/hagerty">Hagerty Dealership</a>
-        <a href="/gt7/cars/ucd">Used Car Dealership</a>
-        <a href="/gt7/cars/brandCentral">Brand Central</a>
-        <a href="/gt7/cars/allCars">All Cars</a>
+        <a href="/">Home Page</a>
+        {#if username}
+          <a href="/user/{username}">My Leagues</a>
+        {/if}
       </div>
     </TransitionChild>
   </Dialog>

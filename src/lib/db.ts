@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { writable } from 'svelte/store';
-import type { PublicEvent, PublicServerEvent, UserCar } from './shared';
+import type { Events, ServerEvent, UserCar } from './shared';
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -40,10 +40,11 @@ export default {
       const { data } = await supabase.from('userInfo').select();
       return data;
     },
-    async create() {
+    async create(email: string) {
+      console.log(email);
       const { data } = await supabase
         .from('userInfo')
-        .insert({ user_id, wantedCarList: [], ownedCarList: [] })
+        .insert({ user_id, wantedCarList: [], ownedCarList: [], email: email, leagues: [] })
         .select()
         .maybeSingle();
 
@@ -79,11 +80,11 @@ export default {
       const { data } = await supabase.from('publicEvents').select();
       return data;
     },
-    async insert(publicEvent: PublicEvent) {
+    async insert(publicEvent: Events) {
       // endTimeDate = new Date(publicEvent.start_date),
       // endTime = new Date(endTimeDate.setHours(endHours, endMins))
 
-      const publicDbEvent: PublicServerEvent = {
+      const publicDbEvent: ServerEvent = {
         user_id: user_id,
         created_at: publicEvent.createdAt,
         start_date: publicEvent.startDate,
