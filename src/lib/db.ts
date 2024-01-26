@@ -44,7 +44,7 @@ export default {
       console.log(email);
       const { data } = await supabase
         .from('userInfo')
-        .insert({ user_id, wantedCarList: [], ownedCarList: [], email: email, leagues: [] })
+        .insert({ user_id, email: email, leagues: [] })
         .select()
         .maybeSingle();
 
