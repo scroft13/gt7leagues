@@ -1,4 +1,4 @@
-import { c as create_ssr_component, e as escape } from "../../../../chunks/index3.js";
+import { c as create_ssr_component, e as escape } from "../../../../chunks/index.js";
 import "../../../../chunks/common.js";
 import "../../../../chunks/validation.js";
 import "dequal/lite";

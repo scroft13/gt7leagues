@@ -1,4 +1,4 @@
-import { c as create_ssr_component } from "../../chunks/index3.js";
+import { c as create_ssr_component } from "../../chunks/index.js";
 import { s as supabase } from "../../chunks/common.js";
 import "dequal/lite";
 import "../../chunks/validation.js";

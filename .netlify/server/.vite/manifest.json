@@ -11,7 +11,7 @@
     "file": "chunks/common.js",
     "imports": [
       "_index2.js",
-      "_index3.js"
+      "_index.js"
     ]
   },
   "_index.js": {
@@ -20,7 +20,7 @@
   "_index2.js": {
     "file": "chunks/index2.js",
     "imports": [
-      "_index3.js"
+      "_index.js"
     ]
   },
   "_index3.js": {
@@ -29,7 +29,7 @@
   "_internal.js": {
     "file": "chunks/internal.js",
     "imports": [
-      "_index3.js"
+      "_index.js"
     ]
   },
   "_validation.js": {
@@ -39,7 +39,7 @@
     "file": "index.js",
     "imports": [
       "_internal.js",
-      "_index.js",
+      "_index3.js",
       "_index2.js"
     ],
     "isEntry": true,
@@ -48,7 +48,7 @@
   "src/routes/+error.svelte": {
     "file": "entries/pages/_error.svelte.js",
     "imports": [
-      "_index3.js"
+      "_index.js"
     ],
     "isEntry": true,
     "src": "src/routes/+error.svelte"
@@ -63,7 +63,7 @@
     ],
     "file": "entries/pages/_layout.svelte.js",
     "imports": [
-      "_index3.js",
+      "_index.js",
       "_common.js",
       "_index2.js"
     ],
@@ -80,7 +80,7 @@
     ],
     "file": "entries/pages/_page.svelte.js",
     "imports": [
-      "_index3.js",
+      "_index.js",
       "_common.js",
       "_validation.js"
     ],
@@ -90,18 +90,20 @@
   "src/routes/confirm-signup/+page.svelte": {
     "file": "entries/pages/confirm-signup/_page.svelte.js",
     "imports": [
-      "_index3.js"
+      "_index.js"
     ],
     "isEntry": true,
     "src": "src/routes/confirm-signup/+page.svelte"
   },
   "src/routes/confirm-signup/+page.ts": {
     "file": "entries/pages/confirm-signup/_page.ts.js",
-    "imports": [
-      "_index.js"
-    ],
     "isEntry": true,
     "src": "src/routes/confirm-signup/+page.ts"
+  },
+  "src/routes/confirm-signup/+server.js": {
+    "file": "entries/endpoints/confirm-signup/_server.js",
+    "isEntry": true,
+    "src": "src/routes/confirm-signup/+server.js"
   },
   "src/routes/league/[league_name]/+page.css": {
     "file": "_app/immutable/assets/_page.35bb711e.css",
@@ -113,7 +115,7 @@
     ],
     "file": "entries/pages/league/_league_name_/_page.svelte.js",
     "imports": [
-      "_index3.js",
+      "_index.js",
       "_common.js",
       "_validation.js"
     ],
@@ -123,7 +125,7 @@
   "src/routes/league/[league_name]/+page.ts": {
     "file": "entries/pages/league/_league_name_/_page.ts.js",
     "imports": [
-      "_index.js"
+      "_index3.js"
     ],
     "isEntry": true,
     "src": "src/routes/league/[league_name]/+page.ts"
@@ -131,7 +133,7 @@
   "src/routes/user/[user_id]/+page.svelte": {
     "file": "entries/pages/user/_user_id_/_page.svelte.js",
     "imports": [
-      "_index3.js"
+      "_index.js"
     ],
     "isEntry": true,
     "src": "src/routes/user/[user_id]/+page.svelte"
@@ -139,7 +141,7 @@
   "src/routes/user/[user_id]/+page.ts": {
     "file": "entries/pages/user/_user_id_/_page.ts.js",
     "imports": [
-      "_index.js"
+      "_index3.js"
     ],
     "isEntry": true,
     "src": "src/routes/user/[user_id]/+page.ts"

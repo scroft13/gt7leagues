@@ -2,7 +2,7 @@
   /** @type {import('./$types').PageData} */
   export let data;
 
-  console.log();
+  console.log(data);
 </script>
 
 <div>Signup Cofirmed? asdf</div>

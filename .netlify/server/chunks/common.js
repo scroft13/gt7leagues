@@ -1,6 +1,6 @@
 import { w as writable } from "./index2.js";
 import { createClient } from "@supabase/supabase-js";
-import { k as getContext, s as setContext, c as create_ssr_component, o as onDestroy, t as tick, g as compute_rest_props, d as subscribe, l as listen, p as bubble, q as prevent_default, r as stop_propagation, h as get_current_component, i as spread, j as escape_object, a as add_attribute, v as validate_component, m as missing_component, b as createEventDispatcher } from "./index3.js";
+import { g as getContext, h as setContext, c as create_ssr_component, p as onDestroy, t as tick, a as compute_rest_props, f as subscribe, q as listen, r as bubble, u as prevent_default, w as stop_propagation, o as get_current_component, b as spread, d as escape_object, i as add_attribute, v as validate_component, m as missing_component, j as createEventDispatcher } from "./index.js";
 const supabase = createClient(
   "https://zruzsnhrgeffpppcliqf.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpydXpzbmhyZ2VmZnBwcGNsaXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDA1ODgzOTYsImV4cCI6MjAxNjE2NDM5Nn0.E32Q5p61P_31o6iQbbIrXN_DMdnp7wVX-1bC1x7QThM"

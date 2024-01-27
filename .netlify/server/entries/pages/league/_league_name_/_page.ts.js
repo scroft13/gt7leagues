@@ -1,4 +1,4 @@
-import { e as error } from "../../../../chunks/index.js";
+import { e as error } from "../../../../chunks/index3.js";
 function load({ params }) {
   if (params.league_name) {
     return {
