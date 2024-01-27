@@ -8,6 +8,7 @@ export const ssr = async (event: any) => {
   const token_hash = url.searchParams.get('token_hash') as string;
   const type = url.searchParams.get('type') as string;
   const next = url.searchParams.get('next') ?? '/';
+  console.log('Hash: ', token_hash, 'Event: ', event, 'Type: ', type, 'Next: ', next);
 
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash, type });
