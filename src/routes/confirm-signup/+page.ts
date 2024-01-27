@@ -10,7 +10,7 @@ export async function load({ url }) {
 
   const response = await fetch(fetchUrl);
   console.log(response);
-  return response;
+  //   return response;
 }
 
 // import { redirect } from '@sveltejs/kit';
