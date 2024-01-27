@@ -15,8 +15,8 @@
   import yup from './forms/validation';
   import { addToast } from '$lib/stores';
   import db, { supabase } from '$lib/db';
-  import type { User } from '@supabase/supabase-js';
-
+  //   import type { User } from '@supabase/supabase-js';
+  //
   export let open: boolean;
   export let isLoginMode: boolean = true;
   type FormData = yup.InferType<typeof formSchema>;
@@ -24,7 +24,7 @@
   let loading = false;
 
   const dispatch = createEventDispatcher();
-  let user: User | null = null;
+  //   let user: User | null = null;
 
   const formSchema = isLoginMode
     ? yup.object().shape({
@@ -62,7 +62,7 @@
               } else {
                 close();
               }
-              user = session?.user ?? null;
+              console.log(session?.user);
             });
           loading = false;
           return;
@@ -149,7 +149,11 @@
                 buttonName={isLoginMode ? 'Sign In' : 'Sign up'}
                 disabled={!$isModified || !$isValid || loading}
               />
-              <a href="/member_logins/password_reset" class="mt-6 text-primary">Forgot Password?</a>
+              {#if isLoginMode}
+                <a href="/member_logins/password_reset" class="mt-6 text-primary"
+                  >Forgot Password?</a
+                >
+              {/if}
             </div>
           </Form>
         </div>
