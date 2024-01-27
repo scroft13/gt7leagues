@@ -9,12 +9,12 @@ export async function load({ url }) {
   const fetchUrl = url.searchParams.get('confirmation_url') as string;
 
   //   const next = url.searchParams.get('next') ?? '/';
-  const token = extractTokenFromURL(fetchUrl);
+  const token_hash = extractTokenFromURL(fetchUrl);
   const type = extractTypeFromURL(fetchUrl) as EmailOtpType;
   const email = url.searchParams.get('email') as string;
 
-  if (token && type && email) {
-    const { error } = await supabase.auth.verifyOtp({ token, type, email });
+  if (token_hash && type && email) {
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type });
     if (!error) {
       console.log('You lucky bastard!');
     }
