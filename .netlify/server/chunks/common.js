@@ -1,8 +1,104 @@
-import { c as create_ssr_component, g as getContext, s as setContext, o as onDestroy, t as tick, h as compute_rest_props, d as subscribe, l as listen, i as bubble, p as prevent_default, j as stop_propagation, k as get_current_component, q as spread, r as escape_object, a as add_attribute, v as validate_component, m as missing_component, b as createEventDispatcher } from "../../../chunks/index2.js";
-import { w as writable } from "../../../chunks/index.js";
-const HamburgerIcon = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mt-2 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>`;
+import { w as writable } from "./index2.js";
+import { createClient } from "@supabase/supabase-js";
+import { k as getContext, s as setContext, c as create_ssr_component, o as onDestroy, t as tick, g as compute_rest_props, d as subscribe, l as listen, p as bubble, q as prevent_default, r as stop_propagation, h as get_current_component, i as spread, j as escape_object, a as add_attribute, v as validate_component, m as missing_component, b as createEventDispatcher } from "./index3.js";
+const supabase = createClient(
+  "https://zruzsnhrgeffpppcliqf.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpydXpzbmhyZ2VmZnBwcGNsaXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDA1ODgzOTYsImV4cCI6MjAxNjE2NDM5Nn0.E32Q5p61P_31o6iQbbIrXN_DMdnp7wVX-1bC1x7QThM"
+);
+const userStore = writable();
+let user_id;
+supabase.auth.getSession().then(({ data }) => {
+  userStore.set(data.session?.user);
+  user_id = data.session?.user.id;
 });
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event == "SIGNED_IN" && session) {
+    userStore.set(session.user);
+  } else if (event == "SIGNED_OUT") {
+    userStore.set(null);
+  }
+});
+supabase.realtime;
+const db = {
+  get user() {
+    return userStore;
+  },
+  signIn(email) {
+    return supabase.auth.signInWithOtp({ email });
+  },
+  signOut() {
+    return supabase.auth.signOut();
+  },
+  createUser: {
+    async all() {
+      const { data } = await supabase.from("userInfo").select();
+      return data;
+    },
+    async create(email) {
+      console.log(email);
+      const { data } = await supabase.from("userInfo").insert({ user_id, email, leagues: [] }).select().maybeSingle();
+      return data;
+    }
+  },
+  ownedCarList: {
+    async update(carList) {
+      user_id ? await supabase.from("userInfo").update({
+        ownedCarList: [...carList]
+      }).eq("user_id", user_id) : null;
+    }
+  },
+  wantedCarList: {
+    async update(carList) {
+      user_id ? await supabase.from("userInfo").update({
+        wantedCarList: [...carList]
+      }).eq("user_id", user_id) : null;
+    }
+  },
+  publicEventsList: {
+    async all() {
+      const { data } = await supabase.from("publicEvents").select();
+      return data;
+    },
+    async insert(publicEvent) {
+      const publicDbEvent = {
+        user_id,
+        created_at: publicEvent.createdAt,
+        start_date: publicEvent.startDate,
+        start_time: publicEvent.startTime,
+        duration_hrs: publicEvent.durationHrs,
+        title: publicEvent.title,
+        vehicle_class: publicEvent.vehicleClass,
+        does_repeat: publicEvent.doesRepeat,
+        contact_type: publicEvent.contactType,
+        id: publicEvent.id,
+        end_date: publicEvent.endDate,
+        discord_server: publicEvent.discordServer,
+        email: publicEvent.email,
+        event_info: publicEvent.eventInfo
+      };
+      user_id ? await supabase.from("publicEvents").insert([publicDbEvent]) : null;
+    }
+  }
+};
+let carWantedListStore = writable();
+let localStorageWantedCarList;
+if (typeof localStorage !== "undefined") {
+  const localStorageCheck = localStorage.wantedCarList;
+  if (localStorageCheck) {
+    localStorageWantedCarList = localStorage.getItem("wantedCarList");
+  }
+}
+if (localStorageWantedCarList != "undefined" && localStorageWantedCarList != null) {
+  const storedCarWantedList = JSON.parse(localStorageWantedCarList) ?? [];
+  carWantedListStore = writable(storedCarWantedList);
+}
+if (typeof localStorage !== "undefined") {
+  carWantedListStore.subscribe(async (value) => {
+    localStorage.wantedCarList = JSON.stringify(value);
+    db.wantedCarList.update(value);
+  });
+}
+const toasts = writable([]);
 var State;
 (function(State2) {
   State2[State2["Open"] = 0] = "Open";
@@ -1172,32 +1268,6 @@ ${validate_component(StackContextProvider, "StackContextProvider").$$render(
   $$unsubscribe_openClosedState();
   return $$rendered;
 });
-const DialogOverlay = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let propsWeControl;
-  let slotProps;
-  let $$restProps = compute_rest_props($$props, ["as", "use"]);
-  let $api, $$unsubscribe_api;
-  let { as = "div" } = $$props;
-  let { use = [] } = $$props;
-  const forwardEvents = forwardEventsBuilder(get_current_component());
-  let api = useDialogContext("DialogOverlay");
-  $$unsubscribe_api = subscribe(api, (value) => $api = value);
-  let id2 = `headlessui-dialog-overlay-${useId()}`;
-  if ($$props.as === void 0 && $$bindings.as && as !== void 0)
-    $$bindings.as(as);
-  if ($$props.use === void 0 && $$bindings.use && use !== void 0)
-    $$bindings.use(use);
-  propsWeControl = { id: id2, "aria-hidden": true };
-  slotProps = {
-    open: $api.dialogState === DialogStates.Open
-  };
-  $$unsubscribe_api();
-  return `${validate_component(Render, "Render").$$render($$result, Object.assign({}, { ...$$restProps, ...propsWeControl }, { as }, { slotProps }, { use: [...use, forwardEvents] }, { name: "DialogOverlay" }), {}, {
-    default: () => {
-      return `${slots.default ? slots.default({ ...slotProps }) : ``}`;
-    }
-  })}`;
-});
 var DisclosureStates;
 (function(DisclosureStates2) {
   DisclosureStates2[DisclosureStates2["Open"] = 0] = "Open";
@@ -1295,314 +1365,27 @@ function useNesting(done) {
     unregister
   };
 }
-const TransitionChild = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let strategy;
-  let classes;
-  let $$restProps = compute_rest_props($$props, [
-    "as",
-    "use",
-    "enter",
-    "enterFrom",
-    "enterTo",
-    "entered",
-    "leave",
-    "leaveFrom",
-    "leaveTo"
-  ]);
-  let $transitionContext, $$unsubscribe_transitionContext;
-  let $nestingContext, $$unsubscribe_nestingContext;
-  let $$unsubscribe_nesting;
-  let { as = "div" } = $$props;
-  let { use = [] } = $$props;
-  let { enter = "" } = $$props;
-  let { enterFrom = "" } = $$props;
-  let { enterTo = "" } = $$props;
-  let { entered = "" } = $$props;
-  let { leave = "" } = $$props;
-  let { leaveFrom = "" } = $$props;
-  let { leaveTo = "" } = $$props;
-  const dispatch = createEventDispatcher();
-  const forwardEvents = forwardEventsBuilder(get_current_component(), ["beforeEnter", "beforeLeave", "afterEnter", "afterLeave"]);
-  let container = null;
-  let transitionContext = useTransitionContext();
-  $$unsubscribe_transitionContext = subscribe(transitionContext, (value) => $transitionContext = value);
-  let nestingContext = useParentNesting();
-  $$unsubscribe_nestingContext = subscribe(nestingContext, (value) => $nestingContext = value);
-  let state = $transitionContext.initialShow || $$props.unmount !== false ? TreeStates.Visible : TreeStates.Hidden;
-  let id2 = useId();
-  let nesting = writable(useNesting(() => {
-    {
-      state = TreeStates.Hidden;
-      $nestingContext.unregister(id2);
-      dispatch("afterLeave");
-    }
-  }));
-  $$unsubscribe_nesting = subscribe(nesting, (value) => value);
-  function splitClasses(classes2 = "") {
-    return classes2.split(" ").filter((className) => className.trim().length > 1);
-  }
-  setContext(NESTING_CONTEXT_NAME, nesting);
-  let openClosedState = writable(State.Closed);
-  useOpenClosedProvider(openClosedState);
-  if ($$props.as === void 0 && $$bindings.as && as !== void 0)
-    $$bindings.as(as);
-  if ($$props.use === void 0 && $$bindings.use && use !== void 0)
-    $$bindings.use(use);
-  if ($$props.enter === void 0 && $$bindings.enter && enter !== void 0)
-    $$bindings.enter(enter);
-  if ($$props.enterFrom === void 0 && $$bindings.enterFrom && enterFrom !== void 0)
-    $$bindings.enterFrom(enterFrom);
-  if ($$props.enterTo === void 0 && $$bindings.enterTo && enterTo !== void 0)
-    $$bindings.enterTo(enterTo);
-  if ($$props.entered === void 0 && $$bindings.entered && entered !== void 0)
-    $$bindings.entered(entered);
-  if ($$props.leave === void 0 && $$bindings.leave && leave !== void 0)
-    $$bindings.leave(leave);
-  if ($$props.leaveFrom === void 0 && $$bindings.leaveFrom && leaveFrom !== void 0)
-    $$bindings.leaveFrom(leaveFrom);
-  if ($$props.leaveTo === void 0 && $$bindings.leaveTo && leaveTo !== void 0)
-    $$bindings.leaveTo(leaveTo);
-  let $$settled;
-  let $$rendered;
-  do {
-    $$settled = true;
-    strategy = $$props.unmount === false ? RenderStrategy.Hidden : RenderStrategy.Unmount;
-    {
-      {
-        (() => {
-          if (strategy !== RenderStrategy.Hidden)
-            return;
-          if (!id2)
-            return;
-          if ($transitionContext.show && state !== TreeStates.Visible) {
-            state = TreeStates.Visible;
-            return;
-          }
-          match(state, {
-            [TreeStates.Hidden]: () => $nestingContext.unregister(id2),
-            [TreeStates.Visible]: () => $nestingContext.register(id2)
-          });
-        })();
-      }
-    }
-    splitClasses(enter);
-    splitClasses(enterFrom);
-    splitClasses(enterTo);
-    splitClasses(entered);
-    splitClasses(leave);
-    splitClasses(leaveFrom);
-    splitClasses(leaveTo);
-    {
-      openClosedState.set(match(state, {
-        [TreeStates.Visible]: State.Open,
-        [TreeStates.Hidden]: State.Closed
-      }));
-    }
-    classes = `${$$props.class || ""} ${entered}`;
-    $$rendered = `${validate_component(Render, "Render").$$render(
-      $$result,
-      Object.assign({}, $$restProps, { as }, { use: [...use, forwardEvents] }, { slotProps: {} }, { name: "TransitionChild" }, { class: classes }, { visible: state === TreeStates.Visible }, { features: Features.RenderStrategy }, { el: container }),
-      {
-        el: ($$value) => {
-          container = $$value;
-          $$settled = false;
-        }
-      },
-      {
-        default: () => {
-          return `${slots.default ? slots.default({}) : ``}`;
-        }
-      }
-    )}`;
-  } while (!$$settled);
-  $$unsubscribe_transitionContext();
-  $$unsubscribe_nestingContext();
-  $$unsubscribe_nesting();
-  return $$rendered;
-});
-const TransitionRoot = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let $$restProps = compute_rest_props($$props, ["as", "use", "show", "appear"]);
-  let $$unsubscribe_nestingBag;
-  let $openClosedState, $$unsubscribe_openClosedState;
-  const forwardEvents = forwardEventsBuilder(get_current_component(), ["beforeEnter", "beforeLeave", "afterEnter", "afterLeave"]);
-  let { as = "div" } = $$props;
-  let { use = [] } = $$props;
-  let { show = void 0 } = $$props;
-  let { appear = false } = $$props;
-  let openClosedState = useOpenClosed();
-  $$unsubscribe_openClosedState = subscribe(openClosedState, (value) => $openClosedState = value);
-  function computeShow(show2, openClosedState2) {
-    if (show2 === void 0 && openClosedState2 !== void 0) {
-      return match(openClosedState2, {
-        [State.Open]: true,
-        [State.Closed]: false
-      });
-    }
-    return show2;
-  }
-  let shouldShow = computeShow(show, openClosedState !== void 0 ? $openClosedState : void 0);
-  let initialShow = shouldShow;
-  let state = shouldShow ? TreeStates.Visible : TreeStates.Hidden;
-  let nestingBag = writable(useNesting(() => {
-    state = TreeStates.Hidden;
-  }));
-  $$unsubscribe_nestingBag = subscribe(nestingBag, (value) => value);
-  let initial = true;
-  let transitionBag = writable();
-  setContext(NESTING_CONTEXT_NAME, nestingBag);
-  setContext(TRANSITION_CONTEXT_NAME, transitionBag);
-  if ($$props.as === void 0 && $$bindings.as && as !== void 0)
-    $$bindings.as(as);
-  if ($$props.use === void 0 && $$bindings.use && use !== void 0)
-    $$bindings.use(use);
-  if ($$props.show === void 0 && $$bindings.show && show !== void 0)
-    $$bindings.show(show);
-  if ($$props.appear === void 0 && $$bindings.appear && appear !== void 0)
-    $$bindings.appear(appear);
-  {
-    {
-      shouldShow = computeShow(show, openClosedState !== void 0 ? $openClosedState : void 0);
-      if (shouldShow !== true && shouldShow !== false) {
-        throw new Error("A <Transition /> is used but it is missing a `show={true | false}` prop.");
-      }
-    }
-  }
-  {
-    transitionBag.set({
-      show: !!shouldShow,
-      appear: appear || !initial,
-      initialShow: !!initialShow
-    });
-  }
-  $$unsubscribe_nestingBag();
-  $$unsubscribe_openClosedState();
-  return `${state === TreeStates.Visible || $$props.unmount === false ? `${validate_component(TransitionChild, "TransitionChild").$$render($$result, Object.assign({}, $$restProps, { as }, { use: [...use, forwardEvents] }), {}, {
-    default: () => {
-      return `${slots.default ? slots.default({}) : ``}`;
-    }
-  })}` : ``}`;
-});
-const TransitionChildWrapper = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  const forwardEvents = forwardEventsBuilder(get_current_component(), ["beforeEnter", "beforeLeave", "afterEnter", "afterLeave"]);
-  let { as = "div" } = $$props;
-  let { use = [] } = $$props;
-  let hasTransition = hasTransitionContext();
-  let hasOpen = hasOpenClosed();
-  if ($$props.as === void 0 && $$bindings.as && as !== void 0)
-    $$bindings.as(as);
-  if ($$props.use === void 0 && $$bindings.use && use !== void 0)
-    $$bindings.use(use);
-  return `${!hasTransition && hasOpen ? `${validate_component(TransitionRoot, "TransitionRoot").$$render($$result, Object.assign({}, $$props, { as }, { use: [...use, forwardEvents] }), {}, {
-    default: () => {
-      return `${slots.default ? slots.default({}) : ``}`;
-    }
-  })}` : `${validate_component(TransitionChild, "TransitionChild").$$render($$result, Object.assign({}, $$props, { as }, { use: [...use, forwardEvents] }), {}, {
-    default: () => {
-      return `${slots.default ? slots.default({}) : ``}`;
-    }
-  })}`}`;
-});
-const X = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let $$restProps = compute_rest_props($$props, []);
-  return `<svg${spread(
-    [
-      { xmlns: "http://www.w3.org/2000/svg" },
-      { viewBox: "0 0 20 20" },
-      { fill: "currentColor" },
-      { "aria-hidden": "true" },
-      escape_object($$restProps)
-    ],
-    {}
-  )}>${slots.default ? slots.default({}) : ``}<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>`;
-});
-const SideMenu = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let { sideMenuIsOpen = false } = $$props;
-  if ($$props.sideMenuIsOpen === void 0 && $$bindings.sideMenuIsOpen && sideMenuIsOpen !== void 0)
-    $$bindings.sideMenuIsOpen(sideMenuIsOpen);
-  return `${validate_component(TransitionRoot, "TransitionRoot").$$render($$result, { as: "div", show: sideMenuIsOpen }, {}, {
-    default: () => {
-      return `${validate_component(Dialog, "Dialog").$$render($$result, { as: "div", class: "fixed inset-0 z-40" }, {}, {
-        default: () => {
-          return `${validate_component(TransitionChildWrapper, "TransitionChild").$$render(
-            $$result,
-            {
-              as: "div",
-              enter: "transition-opacity ease-linear duration-300",
-              enterFrom: "opacity-0",
-              enterTo: "opacity-100",
-              leave: "transition-opacity ease-linear duration-300",
-              leaveFrom: "opacity-100",
-              leaveTo: "opacity-0"
-            },
-            {},
-            {
-              default: () => {
-                return `${validate_component(DialogOverlay, "DialogOverlay").$$render(
-                  $$result,
-                  {
-                    class: "fixed inset-0 bg-black bg-opacity-25"
-                  },
-                  {},
-                  {}
-                )}`;
-              }
-            }
-          )}
-
-    ${validate_component(TransitionChildWrapper, "TransitionChild").$$render(
-            $$result,
-            {
-              as: "div",
-              class: "max-w-xs md:max-w-md  w-full bg-surface-200 drop-shadow-2xl  flex flex-col overflow-y-auto absolute right-0 h-full z-40",
-              enter: "transition ease-in-out duration-300 transform",
-              enterFrom: "translate-x-full",
-              enterTo: "-translate-x-0",
-              leave: "transition ease-in-out duration-300 transform",
-              leaveFrom: "translate-x-0",
-              leaveTo: "translate-x-full"
-            },
-            {},
-            {
-              default: () => {
-                return `<div class="flex justify-end absolute top-0 right-0"><button type="button" class="p-2 rounded-md inline-flex items-center justify-center"><span class="sr-only">Close menu</span>
-          ${validate_component(X, "XIcon").$$render($$result, { class: "h-6 w-6", "aria-hidden": "true" }, {}, {})}</button></div>
-      <div class="mt-4 mx-4 flex flex-col"><a href="/gt7">Main Page</a>
-        <a href="/gt7/hagerty">Hagerty Dealership</a>
-        <a href="/gt7/ucd">Used Car Dealership</a>
-        <a href="/gt7/brandCentral">Brand Central</a>
-        <a href="/gt7/allCars">All Cars</a></div>`;
-              }
-            }
-          )}`;
-        }
-      })}`;
-    }
-  })}`;
-});
-const Layout = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let sideMenuIsOpen = false;
-  let $$settled;
-  let $$rendered;
-  do {
-    $$settled = true;
-    $$rendered = `${validate_component(SideMenu, "SideMenu").$$render(
-      $$result,
-      { sideMenuIsOpen },
-      {
-        sideMenuIsOpen: ($$value) => {
-          sideMenuIsOpen = $$value;
-          $$settled = false;
-        }
-      },
-      {}
-    )}
-
-<div class="w-full flex justify-end sticky"><button>${validate_component(HamburgerIcon, "HamburgerIcon").$$render($$result, {}, {}, {})}</button></div>
-
-<div class="flex justify-center items-center flex-col">${slots.default ? slots.default({}) : ``}</div>`;
-  } while (!$$settled);
-  return $$rendered;
-});
 export {
-  Layout as default
+  DialogStates as D,
+  Features as F,
+  NESTING_CONTEXT_NAME as N,
+  Render as R,
+  State as S,
+  TreeStates as T,
+  useId as a,
+  useTransitionContext as b,
+  useParentNesting as c,
+  useOpenClosedProvider as d,
+  RenderStrategy as e,
+  forwardEventsBuilder as f,
+  useNesting as g,
+  useOpenClosed as h,
+  TRANSITION_CONTEXT_NAME as i,
+  hasTransitionContext as j,
+  hasOpenClosed as k,
+  Dialog as l,
+  match as m,
+  supabase as s,
+  toasts as t,
+  useDialogContext as u
 };

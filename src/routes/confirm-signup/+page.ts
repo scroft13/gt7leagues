@@ -1,12 +1,12 @@
 import { redirect } from '@sveltejs/kit';
 
-export const GET = async (event) => {
+export const ssr = async (event: any) => {
   const {
     url,
     locals: { supabase },
   } = event;
-  const token_hash = url.searchParams.get('token_hash');
-  const type = url.searchParams.get('type');
+  const token_hash = url.searchParams.get('token_hash') as string;
+  const type = url.searchParams.get('type') as string;
   const next = url.searchParams.get('next') ?? '/';
 
   if (token_hash && type) {
