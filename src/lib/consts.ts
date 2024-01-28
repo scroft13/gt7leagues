@@ -1031,3 +1031,5 @@ export const categoryImages: { title: string; imageRef: string; subcategories: s
     subcategories: [],
   },
 ];
+
+export const introBlurb = ``;
