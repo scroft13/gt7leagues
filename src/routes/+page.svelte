@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { browser } from '$app/environment';
+  // import { browser } from '$app/environment';
   // @ts-ignore
   import Calendar from '@event-calendar/core';
   // @ts-ignore
@@ -11,36 +11,54 @@
   import db, { supabase } from '$lib/db';
   import type { User } from '@supabase/supabase-js';
   import LoginModal from '$lib/components/LoginModal.svelte';
+  import CreateLeagueModal from '$lib/components/CreateLeagueModal.svelte';
 
+  const plugins = [DayGrid, TimeGrid];
   let ec: Calendar;
   let events: CalendarEvents[] = [];
   let isPopupVisible = false;
-
+  let user: User | null = null;
   let popupInfo: { type: string; email: string; discord: string; class: string; info: string };
+  let clientWidth: number;
+  let view: string = 'timeGridWeek';
+  let headerToolbar: {} = {
+    start: 'dayGridMonth,timeGridWeek,timeGridDay',
+    center: 'title',
+    end: 'today prev,next',
+  };
+  let options = {
+    view: view,
+    headerToolbar: headerToolbar,
+    allDaySlot: false,
+    eventClick: (e: CustomEvent) => {
+      showPopup(e);
+    },
+    eventMouseEnter: (e: CustomEvent) => {
+      showPopup(e);
+    },
+    eventMouseLeave: () => {
+      hidePopup();
+    },
+    events: events,
+  };
+  let showLeagueAddModal = false;
+  let showLoginModal = false;
+  let isLoginMode = false;
+  let userx;
+  $: supabase.auth.getUser().then((x) => (userx = x));
 
-  function showPopup(e: CustomEvent) {
-    isPopupVisible = true;
-    // @ts-ignore
-    popupInfo = {
-      // @ts-ignore
-      type: e.event.extendedProps.type,
-      // @ts-ignore
-      email: e.event.extendedProps.email,
-      // @ts-ignore
-      discord: e.event.extendedProps.discord,
-      // @ts-ignore
-      class: e.event.extendedProps.class,
-      // @ts-ignore
-      info: e.event.extendedProps.info,
-    };
-  }
-
-  function hidePopup() {
-    isPopupVisible = false;
-  }
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   onMount(async () => {
     // Listen to inserts
+    const {
+      data: { subscription: authListener },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      const currentUser = session?.user;
+      user = currentUser ?? null;
+      console.log(user);
+    });
+
     supabase
       .channel('publicEvents')
       .on(
@@ -49,9 +67,64 @@
         handleInserts,
       )
       .subscribe();
+    events = await updateEvents();
+    if (clientWidth <= 750) {
+      console.log(events);
+      view = 'timeGridDay';
+      headerToolbar = {
+        start: '',
+        center: ' dayGridMonth,timeGridWeek,timeGridDay title today,prev,next',
+        end: '',
+      };
+      options = {
+        view: view,
+        events: events,
+        headerToolbar: headerToolbar,
+        allDaySlot: false,
+        eventClick: (e: CustomEvent) => {
+          showPopup(e);
+        },
+        eventMouseEnter: (e: CustomEvent) => {
+          showPopup(e);
+        },
+        eventMouseLeave: () => {
+          hidePopup();
+        },
+      };
+    } else {
+      view = 'timeGridWeek';
+      headerToolbar = {
+        start: 'dayGridMonth,timeGridWeek,timeGridDay',
+        center: 'title',
+        end: 'today prev,next',
+      };
+      options = {
+        view: view,
+        events: events,
+        headerToolbar: headerToolbar,
+        allDaySlot: false,
+        eventClick: (e: CustomEvent) => {
+          showPopup(e);
+        },
+        eventMouseEnter: (e: CustomEvent) => {
+          showPopup(e);
+        },
+        eventMouseLeave: () => {
+          hidePopup();
+        },
+      };
+    }
+    return () => {
+      authListener?.unsubscribe();
+    };
+  });
+
+  async function updateEvents(): Promise<CalendarEvents[]> {
+    let tempEventList: CalendarEvents[] = [];
     await db.publicEventsList.all().then((eventList) => {
       if (eventList) {
         eventList.forEach((publicEvent: ServerEvent) => {
+          console.log(publicEvent);
           const formattedDateString = publicEvent.start_date.toLocaleString('en-US', {
               timeZone: timezone,
             }),
@@ -59,7 +132,7 @@
           endDateTime.setHours(endDateTime.getHours() + publicEvent.duration_hrs);
           const modifiedDateString = endDateTime.toString();
           if (!publicEvent.does_repeat) {
-            events.push({
+            tempEventList.push({
               id: publicEvent.id,
               start: new Date(formattedDateString),
               end: new Date(modifiedDateString),
@@ -103,51 +176,16 @@
                 };
               });
               eventsArray.forEach((x) => {
-                events.push(x);
+                tempEventList.push(x);
               });
             } else null;
           }
         });
       }
     });
-    ec = new Calendar({
-      target: browser && document.getElementById('ec'),
-      props: {
-        plugins: [DayGrid, TimeGrid],
-        options: {
-          view: 'timeGridWeek',
-          events: events,
-          headerToolbar: {
-            start: 'dayGridMonth,timeGridWeek,timeGridDay',
-            center: 'title',
-            end: 'today prev,next',
-          },
-          eventClick: (e: CustomEvent) => {
-            showPopup(e);
-          },
-          eventMouseEnter: (e: CustomEvent) => {
-            showPopup(e);
-          },
-          eventMouseLeave: () => {
-            hidePopup();
-          },
-        },
-      },
-    });
+    return tempEventList;
+  }
 
-    const {
-      data: { subscription: authListener },
-    } = supabase.auth.onAuthStateChange((_, session) => {
-      const currentUser = session?.user;
-      user = currentUser ?? null;
-    });
-
-    return () => {
-      authListener?.unsubscribe();
-    };
-  });
-
-  // Create a function to handle inserts
   const handleInserts = (payload: any) => {
     console.log(payload);
     if (!payload.new.does_repeat) {
@@ -172,39 +210,48 @@
         backgroundColor: generateRandomColor(),
       });
     } else {
-      // TODO add weekly repeats to listener
+      if (payload.new.end_date) {
+        let datesArray = generateDatesWithInterval(
+          new Date(payload.new.start_date),
+          new Date(payload.new.end_date),
+          7,
+        );
+        let eventsArray = datesArray.map((publicEventArrayItem, i) => {
+          const formattedDateString = publicEventArrayItem.toLocaleString('en-US', {
+              timeZone: timezone,
+            }),
+            endDateTime = new Date(publicEventArrayItem);
+          endDateTime.setHours(endDateTime.getHours() + payload.new.duration_hrs);
+          const modifiedDateString = endDateTime.toString();
+          return {
+            id: payload.new.id + i,
+            start: new Date(formattedDateString),
+            end: new Date(modifiedDateString),
+            title: payload.new.title,
+            extendedProps: {
+              type: payload.new.contact_type,
+              email: payload.new.email,
+              discord: payload.new.discord_server,
+              class: payload.new.vehicle_class,
+              info: payload.new.event_info,
+            },
+            backgroundColor: generateRandomColor(),
+          };
+        });
+        eventsArray.forEach((x) => {
+          events.push(x);
+        });
+      } else null;
+
+      ec.updateEvents();
     }
 
     const existingCalendar = document.getElementById('ec');
     if (existingCalendar) {
       existingCalendar.remove();
     }
-
-    ec = new Calendar({
-      target: browser && document.getElementById('ec2'),
-      props: {
-        plugins: [DayGrid, TimeGrid],
-        options: {
-          view: 'timeGridWeek',
-          events: events,
-          headerToolbar: {
-            start: 'dayGridMonth,timeGridWeek,timeGridDay',
-            center: 'title',
-            end: 'today prev,next',
-          },
-          eventClick: (e: CustomEvent) => {
-            showPopup(e);
-          },
-          eventMouseEnter: (e: CustomEvent) => {
-            showPopup(e);
-          },
-          eventMouseLeave: () => {
-            hidePopup();
-          },
-        },
-      },
-    });
   };
+
   function generateDatesWithInterval(startDate: Date, endDate: Date, intervalDays: number) {
     const dates = [];
     let currentDate = new Date(startDate);
@@ -243,10 +290,28 @@
     // Return the RGB string
     return `rgba(${adjustedRed}, ${adjustedGreen}, ${adjustedBlue}, .8)`;
   }
+  function showPopup(e: CustomEvent) {
+    isPopupVisible = true;
+    // @ts-ignore
+    popupInfo = {
+      // @ts-ignore
+      type: e.event.extendedProps.type,
+      // @ts-ignore
+      email: e.event.extendedProps.email,
+      // @ts-ignore
+      discord: e.event.extendedProps.discord,
+      // @ts-ignore
+      class: e.event.extendedProps.class,
+      // @ts-ignore
+      info: e.event.extendedProps.info,
+    };
+  }
 
-  let user: User | null = null;
+  function hidePopup() {
+    isPopupVisible = false;
+  }
 
-  export async function logout(): Promise<void> {
+  async function logout(): Promise<void> {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
@@ -257,10 +322,7 @@
     }
   }
 
-  let showLoginModal = false;
-  let isLoginMode = false;
-
-  async function launchLoginModal(loginMode: boolean) {
+  function launchLoginModal(loginMode: boolean) {
     showLoginModal = true;
     isLoginMode = loginMode;
   }
@@ -269,45 +331,81 @@
 {#if showLoginModal}
   <LoginModal open={showLoginModal} {isLoginMode} on:close={() => (showLoginModal = false)} />
 {/if}
+{#if showLeagueAddModal}
+  <CreateLeagueModal open={showLeagueAddModal} on:close={() => (showLeagueAddModal = false)} />
+{/if}
 
-<div class="flex gap-4 flex-col items-center justify-center">
-  <h1 class="font-bold text-xl">Welcome to GT7 Leagues</h1>
+<div id="main-div" bind:clientWidth>
+  <div class="flex gap-4 flex-col items-center">
+    <p class="text-primary text-4xl text-center">Welcome to GT7 Leagues</p>
 
-  {#if user}
-    <div class="flex-row">
-      <button class="btn-primary"> Create League </button>
-      <button class="btn-primary ml-12" on:click={logout}> Log Out</button>
-    </div>
-  {:else}
-    <div class="flex-row">
-      <button class="btn-primary" on:click={() => launchLoginModal(false)}> Sign Up</button>
-      <button class="btn-primary ml-12" on:click={() => launchLoginModal(true)}> Log In</button>
-    </div>
-  {/if}
-
-  <div id="ec" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" />
-  <div id="ec2" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" />
-  {#if isPopupVisible}
-    <div class="popup">
-      <!-- Popup content goes here -->
-      <ul>
-        <li>
-          Contact Info:
-          {#if popupInfo.type === 'Discord'}
-            <a href={popupInfo.discord} target="_blank"> Discord Link</a>
-          {:else}
-            <a href={`mailto:${popupInfo.email}`} target="_blank"> Email Link</a>
-          {/if}
-        </li>
-        <li>
-          {popupInfo.class}
-        </li>
-        <li>
-          {popupInfo.info}
-        </li>
-      </ul>
-    </div>
-  {/if}
+    {#if user}
+      <div class="w-full flex flex-col items-center gap-4">
+        <p class="text-primary text-2xl text-center">My Leagues</p>
+        <div class="flex-row gap-12 flex-grow w-full justify-center flex">
+          <button class="btn-primary" on:click={() => (showLeagueAddModal = true)}>
+            Create League
+          </button>
+          <button class="btn-primary" on:click={logout}> Log Out</button>
+        </div>
+      </div>
+    {:else}
+      <div class="w-full items-center justify-center flex flex-col gap-6">
+        <p class="mx-4 lg:mx-16 body-text">
+          Welcome to GT7 Leagues, your ultimate destination for organized and competitive racing
+          experiences! Dive into the thrilling world of Gran Turismo 7 with our comprehensive league
+          management platform. Discover a dynamic calendar featuring an array of exciting leagues,
+          each with its own unique schedule and challenges.
+        </p>
+        <p class="mx-4 lg:mx-16 body-text">
+          At GT7 Leagues, you have the power to take control of your racing destiny. Whether you're
+          a seasoned pro or a novice driver, our platform empowers you to create or join leagues
+          that match your skill level and preferences. Immerse yourself in a community of passionate
+          racers who share your enthusiasm for high-speed competition.
+        </p>
+        <p class="mx-4 lg:mx-16 body-text">
+          Explore individual league pages to access detailed information, including schedules,
+          leaderboards, and unique league characteristics. GT7 Leagues provides a hub for
+          like-minded individuals to connect, compete, and celebrate their love for virtual racing.
+        </p>
+        <p class="mx-4 lg:mx-16 body-text">
+          Gear up for the ultimate racing experience – GT7 Leagues is not just a platform; it's a
+          community where the pursuit of speed meets the joy of camaraderie. Join us on the track
+          and let the thrill of competitive racing unfold!
+        </p>
+      </div>
+      <div class="flex-row">
+        <button class="btn-primary" on:click={() => launchLoginModal(false)}> Sign Up</button>
+        <button class="btn-primary ml-12" on:click={() => launchLoginModal(true)}> Log In</button>
+      </div>
+    {/if}
+    <!-- <div id="ec" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" />
+      <div id="ec2" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" /> -->
+    {#if isPopupVisible}
+      <div class="popup">
+        <!-- Popup content goes here -->
+        <ul>
+          <li>
+            Contact Info:
+            {#if popupInfo.type === 'Discord'}
+              <a href={popupInfo.discord} target="_blank"> Discord Link</a>
+            {:else}
+              <a href={`mailto:${popupInfo.email}`} target="_blank"> Email Link</a>
+            {/if}
+          </li>
+          <li>
+            {popupInfo.class}
+          </li>
+          <li>
+            {popupInfo.info}
+          </li>
+        </ul>
+      </div>
+    {/if}
+  </div>
+  <div class="mx-4 mt-8">
+    <Calendar {plugins} {options} bind:this={ec} />
+  </div>
 </div>
 
 <style lang="postcss">

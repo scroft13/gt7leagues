@@ -15,6 +15,7 @@ function createUser() {
       expires_at: localUser.token.expires_at,
       refresh_token: localUser.token.refresh_token,
       token_type: localUser.token.token_type,
+      user_id: localUser.token.user_id,
     };
   }
   const { subscribe, set } = writable(u);
@@ -29,6 +30,7 @@ function createUser() {
         expires_at: user.token.expires_at,
         refresh_token: user.token.refresh_token,
         token_type: user.token.token_type,
+        user_id: user.user_id,
       };
       set(currentUser);
     },
