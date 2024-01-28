@@ -44,11 +44,21 @@
   let showLeagueAddModal = false;
   let showLoginModal = false;
   let isLoginMode = false;
+  let userx;
+  $: supabase.auth.getUser().then((x) => (userx = x));
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   onMount(async () => {
     // Listen to inserts
+    const {
+      data: { subscription: authListener },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      const currentUser = session?.user;
+      user = currentUser ?? null;
+      console.log(user);
+    });
+
     supabase
       .channel('publicEvents')
       .on(
@@ -104,14 +114,6 @@
         },
       };
     }
-
-    const {
-      data: { subscription: authListener },
-    } = supabase.auth.onAuthStateChange((_, session) => {
-      const currentUser = session?.user;
-      user = currentUser ?? null;
-    });
-
     return () => {
       authListener?.unsubscribe();
     };
@@ -122,6 +124,7 @@
     await db.publicEventsList.all().then((eventList) => {
       if (eventList) {
         eventList.forEach((publicEvent: ServerEvent) => {
+          console.log(publicEvent);
           const formattedDateString = publicEvent.start_date.toLocaleString('en-US', {
               timeZone: timezone,
             }),
@@ -400,7 +403,7 @@
       </div>
     {/if}
   </div>
-  <div class="mx-4">
+  <div class="mx-4 mt-8">
     <Calendar {plugins} {options} bind:this={ec} />
   </div>
 </div>

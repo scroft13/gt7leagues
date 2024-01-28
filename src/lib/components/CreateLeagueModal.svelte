@@ -10,13 +10,13 @@
   import LabeledField from '$lib/components/forms/labeledComponents/LabeledField.svelte';
   import yup from '$lib/components/forms/validation';
   import { createForm } from 'svelte-forms-lib';
-  // import ReCaptcha from '$lib/components/ReCaptcha.svelte';
-  import { createEventDispatcher } from 'svelte';
-
+  import { createEventDispatcher, onMount } from 'svelte';
   import LabeledRadioGroup from './forms/labeledComponents/LabeledRadioGroup.svelte';
   import { contactOptions } from '$lib/consts';
-  import { addToast } from '$lib/stores';
   import LabeledTextarea from './forms/labeledComponents/LabeledTextarea.svelte';
+  import db, { supabase } from '$lib/db';
+  import { addToast } from '$lib/stores';
+  import { goto } from '$app/navigation';
 
   export let open = false;
   const dispatch = createEventDispatcher();
@@ -43,13 +43,58 @@
     leagueName: yup.string().required().default(''),
     leagueAcronym: yup.string().required().default(''),
     contactMethod: yup.string().required().default('Discord'),
-    leagueInfo: yup.string().required().default(''),
+    leagueInfo: yup.string().default(''),
+    mainLocation: yup.string().default(''),
+  });
+  let ownerID: string;
+  onMount(async () => {
+    const user = await supabase.auth.getUser();
+    user.data.user ? (ownerID = user.data.user?.id) : null;
   });
 
   const formState = createForm<FormData>({
       initialValues: formSchema.cast({}) as FormData,
       validationSchema: formSchema,
-      onSubmit: async () => {},
+      onSubmit: async (formData) => {
+        const shortenedName = formData.leagueName.replace(/\s/g, '');
+        console.log('now');
+        db.leagues
+          .create({
+            contactMethod: formData.contactMethod as 'Email' | 'Discord',
+            leagueName: formData.leagueName,
+            leagueAcronym: formData.leagueAcronym,
+            events: [],
+            leagueInfo: formData.leagueInfo,
+            email: formData.email,
+            discordServer: formData.discordServer,
+            contactName: formData.contactName,
+            hasMembers: formData.hasMembers,
+            ownerId: ownerID,
+            mainLocation: formData.mainLocation,
+            memberIds: [],
+            shortenedName: shortenedName,
+          })
+          .then(() => {
+            addToast({
+              id: Math.floor(Math.random() * 100),
+              dismissible: true,
+              timeout: 2000,
+              type: 'success',
+              message: 'Your League Has Been Created!',
+            });
+            goto('/league/' + shortenedName);
+          })
+          .catch((error: Error) => {
+            addToast({
+              id: Math.floor(Math.random() * 100),
+              dismissible: true,
+              timeout: 2000,
+              type: 'error',
+              message: error.message,
+            });
+          });
+        close();
+      },
     }),
     { form } = formState;
 
@@ -64,20 +109,6 @@
   }
 
   let contactEmail: boolean;
-
-  function updateEvents() {
-    form.subscribe((x) => {
-      console.log(x);
-      addToast({
-        id: Math.floor(Math.random() * 100),
-        dismissible: true,
-        timeout: 2000,
-        type: 'success',
-        message: 'Your Event Has Been Saved',
-      });
-      close();
-    });
-  }
 
   $: form.subscribe((x) => {
     x.contactMethod === 'Email' ? (contactEmail = true) : (contactEmail = false);
@@ -170,11 +201,17 @@
               </fieldset>
               <fieldset>
                 <LabeledTextarea name="leagueInfo" label="League Info" />
+                <LabeledField
+                  name="mainLocation"
+                  label="Main Timezone Location"
+                  type="text"
+                  placeholder="ex. East Coast, USA"
+                />
                 <LabeledField name="hasMembers" label="Has Members" type="checkbox" />
               </fieldset>
             </div>
             <div class="wide footer">
-              <button type="submit" on:click={() => updateEvents()}> Submit </button>
+              <button type="submit"> Submit </button>
             </div>
           </Form>
         </div>

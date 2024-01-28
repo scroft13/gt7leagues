@@ -73,13 +73,19 @@ export type ServerEvent = {
 };
 
 export type League = {
-  id: number;
-  name: string;
-  info: string;
+  leagueName: string;
+  leagueAcronym: string;
+  events: Event[];
+  contactMethod: 'Email' | 'Discord';
+  leagueInfo: string;
+  email?: string;
+  discordServer?: string;
+  contactName?: string;
+  hasMembers: boolean;
+  ownerId: string;
   mainLocation: string;
-  publicEvents: Event[];
-  privateEvents: Event[];
-  authorizedUserIds: number;
+  memberIds: string[];
+  shortenedName: string;
 };
 
 export async function getJson<T>(url: string): Promise<T> {

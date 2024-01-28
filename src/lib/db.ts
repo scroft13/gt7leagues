@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { writable } from 'svelte/store';
-import type { Events, ServerEvent, UserCar } from './shared';
+import type { Events, League, ServerEvent, UserCar } from './shared';
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -101,6 +101,14 @@ export default {
         event_info: publicEvent.eventInfo,
       };
       user_id ? await supabase.from('publicEvents').insert([publicDbEvent]) : null;
+    },
+  },
+  leagues: {
+    async create(league: League) {
+      console.log(league.ownerId);
+      league.ownerId
+        ? await supabase.from('leagues').insert(league).eq('ownerId', league.ownerId)
+        : null;
     },
   },
 };

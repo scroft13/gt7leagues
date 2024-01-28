@@ -15,8 +15,7 @@
   import yup from './forms/validation';
   import { addToast } from '$lib/stores';
   import db, { supabase } from '$lib/db';
-  //   import type { User } from '@supabase/supabase-js';
-  //
+
   export let open: boolean;
   export let isLoginMode: boolean = true;
   type FormData = yup.InferType<typeof formSchema>;

@@ -4,6 +4,7 @@
   import AddPublicEventModal from '$lib/components/AddPublicEventModal.svelte';
 
   let openEventModal = false;
+  let leagueName = data.leagueName;
 
   async function launchAddEvent() {
     openEventModal = true;
@@ -17,7 +18,7 @@
     on:close={() => {
       openEventModal = false;
     }}
-    leagueName="Test League"
+    {leagueName}
   />
 {/if}
 
