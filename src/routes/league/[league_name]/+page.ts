@@ -7,6 +7,5 @@ export function load({ params }) {
       leagueName: params.league_name,
     };
   }
-
-  error(404, 'Not found');
+  return error(404, 'Not found');
 }
