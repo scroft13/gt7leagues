@@ -1,10 +1,3 @@
-<script>
-  /** @type {import('./$types').PageData} */
-  export let data;
-
-  console.log(data);
-</script>
-
 <div class="mx-4 lg:mx-16 xl:mx-40 h-[50vh] flex items-center justify-center">
   <div class="flex flex-col">
     <p class="text-primary text-4xl text-center">Your Email Has Been Confirmed!</p>
