@@ -40,7 +40,7 @@ export type CalendarEvents = {
   backgroundColor: string;
 };
 
-export type Events = {
+export type LeagueEvent = {
   id: number;
   startDate: Date;
   startTime: string;
@@ -54,6 +54,8 @@ export type Events = {
   discordServer?: string;
   email?: string;
   eventInfo: string;
+  series: string;
+  track: string;
 };
 export type ServerEvent = {
   user_id: string | undefined;
@@ -70,12 +72,14 @@ export type ServerEvent = {
   discord_server?: string;
   email?: string;
   event_info: string;
+  series: string;
+  track: string;
 };
 
 export type League = {
   leagueName: string;
   leagueAcronym: string;
-  events: Event[];
+  events: LeagueEvent[];
   contactMethod: 'Email' | 'Discord';
   leagueInfo: string;
   email?: string;
@@ -86,6 +90,7 @@ export type League = {
   mainLocation: string;
   memberIds: string[];
   shortenedName: string;
+  series: [];
 };
 
 export async function getJson<T>(url: string): Promise<T> {

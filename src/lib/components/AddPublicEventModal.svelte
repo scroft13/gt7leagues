@@ -50,6 +50,8 @@
     contactMethod: yup.string().required().default('Discord'),
     vehicleClass: yup.string().required().default(''),
     eventInfo: yup.string().required().default(''),
+    series: yup.string().default(''),
+    track: yup.string().default(''),
   });
 
   const formState = createForm<FormData>({
@@ -92,6 +94,8 @@
           createdAt: new Date(),
           endDate: x.endDate ? new Date(x.endDate) : new Date(x.startDate),
           eventInfo: x.eventInfo,
+          series: x.series,
+          track: x.track,
         })
         .then(() => {
           addToast({
@@ -182,6 +186,21 @@
                   options={vehicleClasses}
                   placeholder="Ex. GR 3"
                   short={true}
+                />
+
+                <LabeledField
+                  name="series"
+                  label="Series"
+                  type="text"
+                  placeholder="1"
+                  class="short"
+                />
+                <LabeledField
+                  name="track"
+                  label="Track"
+                  type="text"
+                  placeholder="1"
+                  class="short"
                 />
                 <LabeledRadioGroup
                   name="contactMethod"

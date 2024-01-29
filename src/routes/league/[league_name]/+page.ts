@@ -4,7 +4,7 @@ import { error } from '@sveltejs/kit';
 export function load({ params }) {
   if (params.league_name) {
     return {
-      leagueName: params.league_name,
+      shortenedName: params.league_name,
     };
   }
   return error(404, 'Not found');

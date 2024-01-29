@@ -7,7 +7,7 @@
   import DayGrid from '@event-calendar/day-grid';
   // @ts-ignore
   import TimeGrid from '@event-calendar/time-grid';
-  import type { CalendarEvents, ServerEvent } from '$lib/shared';
+  import type { CalendarEvents, League, ServerEvent } from '$lib/shared';
   import db, { supabase } from '$lib/db';
   import type { User } from '@supabase/supabase-js';
   import LoginModal from '$lib/components/LoginModal.svelte';
@@ -37,15 +37,16 @@
       showPopup(e);
     },
     eventMouseLeave: () => {
-      hidePopup();
+      // hidePopup();
     },
     events: events,
   };
   let showLeagueAddModal = false;
   let showLoginModal = false;
   let isLoginMode = false;
-  let userx;
-  $: supabase.auth.getUser().then((x) => (userx = x));
+  let loading = true;
+  let ownedLeagues: League[] = [];
+  let joinedLeagues: League[] = [];
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -88,7 +89,7 @@
           showPopup(e);
         },
         eventMouseLeave: () => {
-          hidePopup();
+          // hidePopup();
         },
       };
     } else {
@@ -110,10 +111,13 @@
           showPopup(e);
         },
         eventMouseLeave: () => {
-          hidePopup();
+          // hidePopup();
         },
       };
     }
+    ownedLeagues = (await db.leagues.findOwned()) ?? [];
+    joinedLeagues = (await db.leagues.findJoined()) ?? [];
+    loading = false;
     return () => {
       authListener?.unsubscribe();
     };
@@ -290,6 +294,7 @@
     // Return the RGB string
     return `rgba(${adjustedRed}, ${adjustedGreen}, ${adjustedBlue}, .8)`;
   }
+
   function showPopup(e: CustomEvent) {
     isPopupVisible = true;
     // @ts-ignore
@@ -307,9 +312,9 @@
     };
   }
 
-  function hidePopup() {
-    isPopupVisible = false;
-  }
+  // function hidePopup() {
+  //   isPopupVisible = false;
+  // }
 
   async function logout(): Promise<void> {
     try {
@@ -338,74 +343,118 @@
 <div id="main-div" bind:clientWidth>
   <div class="flex gap-4 flex-col items-center">
     <p class="text-primary text-4xl text-center">Welcome to GT7 Leagues</p>
-
-    {#if user}
-      <div class="w-full flex flex-col items-center gap-4">
-        <p class="text-primary text-2xl text-center">My Leagues</p>
-        <div class="flex-row gap-12 flex-grow w-full justify-center flex">
-          <button class="btn-primary" on:click={() => (showLeagueAddModal = true)}>
-            Create League
-          </button>
-          <button class="btn-primary" on:click={logout}> Log Out</button>
+    {#if loading}
+      <div class="w-full">
+        <div class="h-20 my-2 mx-4">
+          <div class="skeleton-block" />
+        </div>
+      </div>
+      <div class="w-full">
+        <div class="h-20 my-1 mx-4">
+          <div class="skeleton-block" />
+        </div>
+      </div>
+      <div class="w-full">
+        <div class="h-[500px] lg:h-[1200px] my-2 mx-4">
+          <div class="skeleton-block" />
         </div>
       </div>
     {:else}
-      <div class="w-full items-center justify-center flex flex-col gap-6">
-        <p class="mx-4 lg:mx-16 body-text">
-          Welcome to GT7 Leagues, your ultimate destination for organized and competitive racing
-          experiences! Dive into the thrilling world of Gran Turismo 7 with our comprehensive league
-          management platform. Discover a dynamic calendar featuring an array of exciting leagues,
-          each with its own unique schedule and challenges.
-        </p>
-        <p class="mx-4 lg:mx-16 body-text">
-          At GT7 Leagues, you have the power to take control of your racing destiny. Whether you're
-          a seasoned pro or a novice driver, our platform empowers you to create or join leagues
-          that match your skill level and preferences. Immerse yourself in a community of passionate
-          racers who share your enthusiasm for high-speed competition.
-        </p>
-        <p class="mx-4 lg:mx-16 body-text">
-          Explore individual league pages to access detailed information, including schedules,
-          leaderboards, and unique league characteristics. GT7 Leagues provides a hub for
-          like-minded individuals to connect, compete, and celebrate their love for virtual racing.
-        </p>
-        <p class="mx-4 lg:mx-16 body-text">
-          Gear up for the ultimate racing experience – GT7 Leagues is not just a platform; it's a
-          community where the pursuit of speed meets the joy of camaraderie. Join us on the track
-          and let the thrill of competitive racing unfold!
-        </p>
-      </div>
-      <div class="flex-row">
-        <button class="btn-primary" on:click={() => launchLoginModal(false)}> Sign Up</button>
-        <button class="btn-primary ml-12" on:click={() => launchLoginModal(true)}> Log In</button>
-      </div>
-    {/if}
-    <!-- <div id="ec" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" />
+      {#if user}
+        <div class="w-full flex flex-col items-center gap-4">
+          <p class="text-primary text-2xl text-center">My Leagues</p>
+          <p class="text-primary text-2xl text-center">Managed Leagues</p>
+          {#each ownedLeagues as league}
+            <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
+          {/each}
+          <p class="text-primary text-2xl text-center">Joined Leagues</p>
+          {#each joinedLeagues as league}
+            <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
+          {/each}
+          <div class="flex-row gap-12 flex-grow w-full justify-center flex">
+            <button class="btn-primary" on:click={() => (showLeagueAddModal = true)}>
+              Create League
+            </button>
+            <button class="btn-primary" on:click={logout}> Log Out</button>
+          </div>
+        </div>
+      {:else}
+        <div class="w-full items-center justify-center flex flex-col gap-6">
+          <p class="mx-4 lg:mx-16 body-text">
+            Welcome to GT7 Leagues, your ultimate destination for organized and competitive racing
+            experiences! Dive into the thrilling world of Gran Turismo 7 with our comprehensive
+            league management platform. Discover a dynamic calendar featuring an array of exciting
+            leagues, each with its own unique schedule and challenges.
+          </p>
+          <p class="mx-4 lg:mx-16 body-text">
+            At GT7 Leagues, you have the power to take control of your racing destiny. Whether
+            you're a seasoned pro or a novice driver, our platform empowers you to create or join
+            leagues that match your skill level and preferences. Immerse yourself in a community of
+            passionate racers who share your enthusiasm for high-speed competition.
+          </p>
+          <p class="mx-4 lg:mx-16 body-text">
+            Explore individual league pages to access detailed information, including schedules,
+            leaderboards, and unique league characteristics. GT7 Leagues provides a hub for
+            like-minded individuals to connect, compete, and celebrate their love for virtual
+            racing.
+          </p>
+          <p class="mx-4 lg:mx-16 body-text">
+            Gear up for the ultimate racing experience – GT7 Leagues is not just a platform; it's a
+            community where the pursuit of speed meets the joy of camaraderie. Join us on the track
+            and let the thrill of competitive racing unfold!
+          </p>
+        </div>
+        <div class="flex-row">
+          <button class="btn-primary" on:click={() => launchLoginModal(false)}> Sign Up</button>
+          <button class="btn-primary ml-12" on:click={() => launchLoginModal(true)}> Log In</button>
+        </div>
+      {/if}
+      <!-- <div id="ec" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" />
       <div id="ec2" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" /> -->
-    {#if isPopupVisible}
-      <div class="popup">
-        <!-- Popup content goes here -->
-        <ul>
-          <li>
-            Contact Info:
-            {#if popupInfo.type === 'Discord'}
-              <a href={popupInfo.discord} target="_blank"> Discord Link</a>
-            {:else}
-              <a href={`mailto:${popupInfo.email}`} target="_blank"> Email Link</a>
-            {/if}
-          </li>
-          <li>
-            {popupInfo.class}
-          </li>
-          <li>
-            {popupInfo.info}
-          </li>
-        </ul>
+      {#if isPopupVisible}
+        <div
+          class="z-10 popover-background rounded-lg p-2 shadow-listbox-shadow popup w-80 h-[500px]"
+        >
+          <!-- Popup content goes here -->
+          <ul>
+            <li>
+              Contact Info:
+              {#if popupInfo.type === 'Discord'}
+                <a href={popupInfo.discord} target="_blank"> Discord Link</a>
+              {:else}
+                <a href={`mailto:${popupInfo.email}`} target="_blank"> Email Link</a>
+              {/if}
+            </li>
+            <li>
+              {popupInfo.class}
+            </li>
+            <li>
+              {popupInfo.info}
+            </li>
+          </ul>
+        </div>
+      {/if}
+      <div class="w-full felx-grow">
+        <div class="mt-8 mx-4">
+          <Calendar {plugins} {options} bind:this={ec} />
+        </div>
       </div>
     {/if}
   </div>
-  <div class="mx-4 mt-8">
-    <Calendar {plugins} {options} bind:this={ec} />
-  </div>
+
+  <!-- <PopoverPanel
+    class="absolute z-10 popover-background rounded-lg w-full -top-2 p-2 shadow-listbox-shadow"
+  >
+    <div class="h-full max-h-96 overflow-auto">
+      <button
+        class="secondary-text hover:text-secondary hover:bg-gray-200 rounded py-4 px-2 w-full text-left"
+      >
+        <div class="flex items-start justify-start">
+          <p class="w-full">All</p>
+        </div>
+      </button>
+    </div>
+  </PopoverPanel> -->
 </div>
 
 <style lang="postcss">
