@@ -14,8 +14,7 @@
   import { createEventDispatcher } from 'svelte';
   import LabeledDateSelector from './forms/labeledComponents/LabeledDateSelector.svelte';
   import LabeledTimePicker from './forms/labeledComponents/LabeledTimePicker.svelte';
-  import LabeledRadioGroup from './forms/labeledComponents/LabeledRadioGroup.svelte';
-  import { contactOptions, vehicleClasses } from '$lib/consts';
+  import { vehicleClasses } from '$lib/consts';
   import LabeledCombobox from './forms/labeledComponents/LabeledCombobox.svelte';
   import db from '$lib/db';
   import { addToast } from '$lib/stores';
@@ -23,24 +22,11 @@
 
   export let open = false;
   export let leagueName: string;
+  export let shortenedName: string;
   const dispatch = createEventDispatcher();
   const formSchema = yup.object().shape({
-    email: yup
-      .string()
-      .email()
-      .when('contactMethod', {
-        is: 'Email',
-        then: (schema) => schema.required(),
-      })
-      .default(''),
     contactName: yup.string().required().default(''),
-    discordServer: yup
-      .string()
-      .when('contactMethod', {
-        is: 'Discord',
-        then: (schema) => schema.required(),
-      })
-      .default(''),
+    discordServer: yup.string().default(''),
     termsOfService: yup.boolean().required().default(false),
     repeatWeekly: yup.boolean().default(false),
     startDate: yup.string().required().default(''),
@@ -64,7 +50,6 @@
   type FormData = yup.InferType<typeof formSchema>;
 
   let repeatWeekly = false;
-  let contactEmail: boolean;
 
   function close() {
     open = false;
@@ -76,18 +61,18 @@
 
   function updateEvents() {
     let id: number = Math.floor(Math.random() * 100000);
+    let errorFlag = false;
 
     form.subscribe((x) => {
       const dateStringWithTime = new Date(`${x.startDate}T${x.startTime}`);
       db.publicEventsList
         .insert({
-          contactType: x.contactMethod as 'email' | 'discord',
-          doesRepeat: x.repeatWeekly,
+          leagueName: leagueName,
+          isSeries: x.repeatWeekly,
           durationHrs: x.duration,
           startDate: dateStringWithTime,
           startTime: x.startTime,
           vehicleClass: x.vehicleClass,
-          email: x.email,
           discordServer: x.discordServer,
           id: id,
           title: leagueName + ' ' + x.vehicleClass,
@@ -98,20 +83,72 @@
           track: x.track,
         })
         .then(() => {
-          addToast({
-            id: Math.floor(Math.random() * 100),
-            dismissible: true,
-            timeout: 2000,
-            type: 'success',
-            message: 'Your Event Has Been Saved',
-          });
-          close();
+          if (x.repeatWeekly) {
+            db.leagues
+              .addSeries(
+                {
+                  name: x.series,
+                  members: [],
+                  eventDetails: {
+                    leagueName: leagueName,
+                    isSeries: x.repeatWeekly,
+                    durationHrs: x.duration,
+                    startDate: dateStringWithTime,
+                    startTime: x.startTime,
+                    vehicleClass: x.vehicleClass,
+                    discordServer: x.discordServer,
+                    id: id,
+                    title: leagueName + ' ' + x.vehicleClass,
+                    createdAt: new Date(),
+                    endDate: x.endDate ? new Date(x.endDate) : new Date(x.startDate),
+                    eventInfo: x.eventInfo,
+                    series: x.series,
+                    track: 'Revolving',
+                  },
+                },
+                shortenedName,
+              )
+              .catch(() => (errorFlag = true));
+          } else {
+            db.leagues
+              .addSingleEvent(
+                {
+                  leagueName: leagueName,
+                  isSeries: x.repeatWeekly,
+                  durationHrs: x.duration,
+                  startDate: dateStringWithTime,
+                  startTime: x.startTime,
+                  vehicleClass: x.vehicleClass,
+                  discordServer: x.discordServer,
+                  id: id,
+                  title: leagueName + ' ' + x.vehicleClass,
+                  createdAt: new Date(),
+                  endDate: x.endDate ? new Date(x.endDate) : new Date(x.startDate),
+                  eventInfo: x.eventInfo,
+                  series: x.series,
+                  track: x.track,
+                },
+                shortenedName,
+              )
+              .catch(() => (errorFlag = true));
+          }
+        })
+        .catch(() => (errorFlag = true));
+
+      if (!errorFlag) {
+        addToast({
+          id: Math.floor(Math.random() * 100),
+          dismissible: true,
+          timeout: 2000,
+          type: 'success',
+          message: `Your ${x.repeatWeekly ? 'series' : 'event'} has been saved`,
         });
+        close();
+      }
     });
   }
 
   $: form.subscribe((x) => {
-    x.contactMethod === 'Email' ? (contactEmail = true) : (contactEmail = false);
     repeatWeekly = x.repeatWeekly;
   });
 </script>
@@ -174,8 +211,15 @@
                   placeholder="1"
                   class="short"
                 />
-                <LabeledField name="repeatWeekly" label="Repeat Weekly" type="checkbox" />
+                <LabeledField name="repeatWeekly" label="Is Series Race" type="checkbox" />
                 {#if repeatWeekly}
+                  <LabeledField
+                    name="series"
+                    label="Series"
+                    type="text"
+                    placeholder="ex. Monday Night Madness"
+                    class="short"
+                  />
                   <LabeledDateSelector name="endDate" label="End Date" />
                 {/if}
               </fieldset>
@@ -187,22 +231,16 @@
                   placeholder="Ex. GR 3"
                   short={true}
                 />
-
-                <LabeledField
-                  name="series"
-                  label="Series"
-                  type="text"
-                  placeholder="1"
-                  class="short"
-                />
-                <LabeledField
-                  name="track"
-                  label="Track"
-                  type="text"
-                  placeholder="1"
-                  class="short"
-                />
-                <LabeledRadioGroup
+                {#if !repeatWeekly}
+                  <LabeledField
+                    name="track"
+                    label="Track"
+                    type="text"
+                    placeholder="ex. Dragon Trail"
+                    class="short"
+                  />
+                {/if}
+                <!-- <LabeledRadioGroup
                   name="contactMethod"
                   label="Contact Method"
                   options={contactOptions}
@@ -217,15 +255,15 @@
                     icon="email"
                     placeholder="Ex. yourname@domain.com"
                   />
-                {:else}
-                  <LabeledField
-                    name="discordServer"
-                    label="Discord server"
-                    type="text"
-                    icon=""
-                    placeholder="Ex. https://discord.gg/sCCJ7DoN"
-                  />
-                {/if}
+                {:else} -->
+                <LabeledField
+                  name="discordServer"
+                  label="Discord server"
+                  type="text"
+                  icon=""
+                  placeholder="Ex. https://discord.gg/sCCJ7DoN"
+                />
+
                 <LabeledTextarea name="eventInfo" label="Event Info" />
               </fieldset>
             </div>

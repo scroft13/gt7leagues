@@ -50,6 +50,7 @@
           supabase.auth
             .signInWithPassword({ email: formData.email, password: formData.password })
             .then(({ data: { session }, error }) => {
+              console.log(session?.user);
               if (error) {
                 addToast({
                   id: 2,
@@ -61,19 +62,13 @@
               } else {
                 close();
               }
-              console.log(session?.user);
             });
           loading = false;
           return;
         } else {
-          supabase.auth
-            .signUp({ email: formData.email, password: formData.password })
-            .catch((error) => {
-              console.log(error);
-            });
-          supabase.auth.getSession().then(({ data: {} }) => {
-            db.createUser.create(formData.email);
-
+          supabase.auth.signUp({ email: formData.email, password: formData.password });
+          supabase.auth.getSession().then(() => {
+            db.users.create(formData.email);
             addToast({
               id: 1,
               message: 'Please check confirmation email to login',

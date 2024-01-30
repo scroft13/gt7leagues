@@ -47,8 +47,7 @@ export type LeagueEvent = {
   durationHrs: number;
   title: string;
   vehicleClass: string;
-  doesRepeat: boolean;
-  contactType: 'email' | 'discord';
+  isSeries: boolean;
   createdAt: Date;
   endDate?: Date;
   discordServer?: string;
@@ -56,7 +55,9 @@ export type LeagueEvent = {
   eventInfo: string;
   series: string;
   track: string;
+  leagueName: string;
 };
+
 export type ServerEvent = {
   user_id: string | undefined;
   id: number;
@@ -65,8 +66,7 @@ export type ServerEvent = {
   duration_hrs: number;
   title: string;
   vehicle_class: string;
-  does_repeat: boolean;
-  contact_type: 'email' | 'discord';
+  is_series: boolean;
   created_at: Date;
   end_date?: Date;
   discord_server?: string;
@@ -74,12 +74,13 @@ export type ServerEvent = {
   event_info: string;
   series: string;
   track: string;
+  leagueName: string;
 };
 
 export type League = {
   leagueName: string;
   leagueAcronym: string;
-  events: LeagueEvent[];
+  singleEvents: LeagueEvent[];
   contactMethod: 'Email' | 'Discord';
   leagueInfo: string;
   email?: string;
@@ -90,7 +91,13 @@ export type League = {
   mainLocation: string;
   memberIds: string[];
   shortenedName: string;
-  series: [];
+  seriesEvents: LeagueSeries[];
+};
+
+export type LeagueSeries = {
+  name: string;
+  members: string[];
+  eventDetails: LeagueEvent;
 };
 
 export async function getJson<T>(url: string): Promise<T> {

@@ -12,8 +12,13 @@
   import type { User } from '@supabase/supabase-js';
   import LoginModal from '$lib/components/LoginModal.svelte';
   import CreateLeagueModal from '$lib/components/CreateLeagueModal.svelte';
+  import type { PageData } from './$types';
 
   const plugins = [DayGrid, TimeGrid];
+  export let data: PageData;
+
+  let setUsername = false;
+  data.username === null ? (setUsername = true) : (setUsername = false);
   let ec: Calendar;
   let events: CalendarEvents[] = [];
   let isPopupVisible = false;
@@ -21,6 +26,7 @@
   let popupInfo: { type: string; email: string; discord: string; class: string; info: string };
   let clientWidth: number;
   let view: string = 'timeGridWeek';
+
   let headerToolbar: {} = {
     start: 'dayGridMonth,timeGridWeek,timeGridDay',
     center: 'title',
@@ -30,7 +36,7 @@
     view: view,
     headerToolbar: headerToolbar,
     allDaySlot: false,
-    eventClick: (e: CustomEvent) => {
+    eventClick: (e: any) => {
       showPopup(e);
     },
     eventMouseEnter: (e: CustomEvent) => {
@@ -57,7 +63,6 @@
     } = supabase.auth.onAuthStateChange((_, session) => {
       const currentUser = session?.user;
       user = currentUser ?? null;
-      console.log(user);
     });
 
     supabase
@@ -70,7 +75,6 @@
       .subscribe();
     events = await updateEvents();
     if (clientWidth <= 750) {
-      console.log(events);
       view = 'timeGridDay';
       headerToolbar = {
         start: '',
@@ -82,7 +86,7 @@
         events: events,
         headerToolbar: headerToolbar,
         allDaySlot: false,
-        eventClick: (e: CustomEvent) => {
+        eventClick: (e: any) => {
           showPopup(e);
         },
         eventMouseEnter: (e: CustomEvent) => {
@@ -104,7 +108,7 @@
         events: events,
         headerToolbar: headerToolbar,
         allDaySlot: false,
-        eventClick: (e: CustomEvent) => {
+        eventClick: (e: any) => {
           showPopup(e);
         },
         eventMouseEnter: (e: CustomEvent) => {
@@ -128,21 +132,19 @@
     await db.publicEventsList.all().then((eventList) => {
       if (eventList) {
         eventList.forEach((publicEvent: ServerEvent) => {
-          console.log(publicEvent);
           const formattedDateString = publicEvent.start_date.toLocaleString('en-US', {
               timeZone: timezone,
             }),
             endDateTime = new Date(publicEvent.start_date);
           endDateTime.setHours(endDateTime.getHours() + publicEvent.duration_hrs);
           const modifiedDateString = endDateTime.toString();
-          if (!publicEvent.does_repeat) {
+          if (!publicEvent.is_series) {
             tempEventList.push({
               id: publicEvent.id,
               start: new Date(formattedDateString),
               end: new Date(modifiedDateString),
               title: publicEvent.title,
               extendedProps: {
-                type: publicEvent.contact_type,
                 email: publicEvent.email,
                 discord: publicEvent.discord_server,
                 class: publicEvent.vehicle_class,
@@ -170,7 +172,6 @@
                   end: new Date(modifiedDateString),
                   title: publicEvent.title,
                   extendedProps: {
-                    type: publicEvent.contact_type,
                     email: publicEvent.email,
                     discord: publicEvent.discord_server,
                     class: publicEvent.vehicle_class,
@@ -191,7 +192,6 @@
   }
 
   const handleInserts = (payload: any) => {
-    console.log(payload);
     if (!payload.new.does_repeat) {
       const formattedDateString = payload.new.start_date.toLocaleString('en-US', {
           timeZone: timezone,
@@ -341,7 +341,7 @@
 {/if}
 
 <div id="main-div" bind:clientWidth>
-  <div class="flex gap-4 flex-col items-center">
+  <div class="flex gap-4 flex-col ">
     <p class="text-primary text-4xl text-center">Welcome to GT7 Leagues</p>
     {#if loading}
       <div class="w-full">
@@ -361,17 +361,20 @@
       </div>
     {:else}
       {#if user}
-        <div class="w-full flex flex-col items-center gap-4">
-          <p class="text-primary text-2xl text-center">My Leagues</p>
-          <p class="text-primary text-2xl text-center">Managed Leagues</p>
-          {#each ownedLeagues as league}
-            <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
-          {/each}
-          <p class="text-primary text-2xl text-center">Joined Leagues</p>
-          {#each joinedLeagues as league}
-            <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
-          {/each}
-          <div class="flex-row gap-12 flex-grow w-full justify-center flex">
+        <div class="mx-4 flex flex-col gap-2">
+          <div class="flex flex-col gap-2">
+            <p class="text-primary text-2xl">Managed Leagues</p>
+            {#each ownedLeagues as league}
+              <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
+            {/each}
+          </div>
+          <div class="flex flex-col gap-2">
+            <p class="text-primary text-2xl mt-2">Joined Leagues</p>
+            {#each joinedLeagues as league}
+              <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
+            {/each}
+          </div>
+          <div class="flex-row gap-12 flex-grow w-full justify-center flex mt-4">
             <button class="btn-primary" on:click={() => (showLeagueAddModal = true)}>
               Create League
             </button>
@@ -411,59 +414,35 @@
       {/if}
       <!-- <div id="ec" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" />
       <div id="ec2" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" /> -->
-      {#if isPopupVisible}
-        <div
-          class="z-10 popover-background rounded-lg p-2 shadow-listbox-shadow popup w-80 h-[500px]"
-        >
-          <!-- Popup content goes here -->
-          <ul>
-            <li>
-              Contact Info:
-              {#if popupInfo.type === 'Discord'}
-                <a href={popupInfo.discord} target="_blank"> Discord Link</a>
-              {:else}
-                <a href={`mailto:${popupInfo.email}`} target="_blank"> Email Link</a>
-              {/if}
-            </li>
-            <li>
-              {popupInfo.class}
-            </li>
-            <li>
-              {popupInfo.info}
-            </li>
-          </ul>
-        </div>
-      {/if}
+
       <div class="w-full felx-grow">
-        <div class="mt-8 mx-4">
+        <div class="mt-8 mx-4 relative">
+          {#if isPopupVisible}
+            <div
+              class="z-10 popover-background rounded-lg p-2 shadow-listbox-shadow absolute top-40 w-80 h-[500px]"
+            >
+              <!-- Popup content goes here -->
+              <ul>
+                <li>
+                  Contact Info:
+                  {#if popupInfo.type === 'Discord'}
+                    <a href={popupInfo.discord} target="_blank"> Discord Link</a>
+                  {:else}
+                    <a href={`mailto:${popupInfo.email}`} target="_blank"> Email Link</a>
+                  {/if}
+                </li>
+                <li>
+                  {popupInfo.class}
+                </li>
+                <li>
+                  {popupInfo.info}
+                </li>
+              </ul>
+            </div>
+          {/if}
           <Calendar {plugins} {options} bind:this={ec} />
         </div>
       </div>
     {/if}
   </div>
-
-  <!-- <PopoverPanel
-    class="absolute z-10 popover-background rounded-lg w-full -top-2 p-2 shadow-listbox-shadow"
-  >
-    <div class="h-full max-h-96 overflow-auto">
-      <button
-        class="secondary-text hover:text-secondary hover:bg-gray-200 rounded py-4 px-2 w-full text-left"
-      >
-        <div class="flex items-start justify-start">
-          <p class="w-full">All</p>
-        </div>
-      </button>
-    </div>
-  </PopoverPanel> -->
 </div>
-
-<style lang="postcss">
-  .popup {
-    position: absolute;
-    top: 25%;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    padding: 10px;
-    z-index: 1000;
-  }
-</style>

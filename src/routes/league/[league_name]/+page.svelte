@@ -1,51 +1,27 @@
 <script lang="ts">
-  /** @type {import('./$types').PageData} */
-  export let data: PageData;
   import AddPublicEventModal from '$lib/components/AddPublicEventModal.svelte';
-  import db, { supabase } from '$lib/db';
+  import db from '$lib/db';
   import { onMount } from 'svelte';
-  // import type {League } from '$lib/shared';
   import type { PageData } from './$types';
   import type { League } from '$lib/shared';
-  import TableGrid from '$lib/components/tables/TableGrid.svelte';
-  import TableHeader from '$lib/components/tables/TableHeader.svelte';
-  import MobileTableHeader from '$lib/components/tables/MobileTableHeader.svelte';
-  import MobileTableGrid from '$lib/components/tables/MobileTableGrid.svelte';
-  import { displayDateNumerical } from '$lib/formatters';
-  import type { User, UserResponse } from '@supabase/supabase-js';
+  import type { User } from '@supabase/supabase-js';
   import { addToast } from '$lib/stores';
-  import ChevronDoubleDown from '@rgossiaux/svelte-heroicons/outline/ChevronDoubleDown';
+  import ChevronDown from '@rgossiaux/svelte-heroicons/solid/ChevronDown';
+  import ChevronUp from '@rgossiaux/svelte-heroicons/solid/ChevronUp';
+  import { goto } from '$app/navigation';
 
+  export let data: PageData;
   let openEventModal = false;
   let shortenedName = data.shortenedName ?? '';
-  let leagueInfo: League = {
-    leagueName: '',
-    leagueAcronym: '',
-    events: [],
-    contactMethod: 'Email',
-    leagueInfo: '',
-    email: '',
-    discordServer: '',
-    contactName: '',
-    hasMembers: false,
-    ownerId: '',
-    mainLocation: '',
-    memberIds: [],
-    shortenedName: '',
-    series: [],
-  };
-
-  let supabaseListener: UserResponse;
-  let user: User | null;
-
+  let leagueInfo: League | null = data.leagueInfo ?? null;
+  let user: User | null = data.user ?? null;
   let showMoreBlurb = false;
+  let blurbTooSmall: boolean;
 
   onMount(async () => {
-    let leagueArray = await db.leagues.find(shortenedName);
-    if (leagueArray) leagueInfo = leagueArray[0];
-    supabaseListener = await supabase.auth.getUser();
-    user = supabaseListener.data.user;
-    console.log(leagueInfo);
+    if (data.redirect) goto('/league/notfound/noLeague');
+    if (leagueInfo)
+      leagueInfo.leagueInfo.length > 500 ? (blurbTooSmall = false) : (blurbTooSmall = true);
   });
 
   async function launchAddEvent() {
@@ -53,15 +29,15 @@
   }
 
   async function joinLeague() {
-    db.leagues.join(shortenedName).then((x) => {
-      console.log(x);
-      addToast({
-        id: Math.floor(Math.random() * 100),
-        dismissible: true,
-        timeout: 2000,
-        type: 'success',
-        message: 'You have joined ' + leagueInfo.leagueName + '. Good Racing!',
-      });
+    db.leagues.join(shortenedName).then(() => {
+      if (leagueInfo)
+        addToast({
+          id: Math.floor(Math.random() * 100),
+          dismissible: true,
+          timeout: 2000,
+          type: 'success',
+          message: 'You have joined ' + leagueInfo.leagueName + '. Good Racing!',
+        });
     });
   }
   console.log(data);
@@ -73,58 +49,73 @@
     on:close={() => {
       openEventModal = false;
     }}
-    leagueName="shortenedName"
+    leagueName={leagueInfo?.leagueAcronym ?? ''}
+    {shortenedName}
   />
 {/if}
-<div class="flex flex-col items-center gap-6">
-  <p class="text-primary text-4xl text-center">Welcome to {leagueInfo.leagueName}</p>
-  <p
-    class={showMoreBlurb
-      ? 'line-clamp-4 text-left font-semibold relative'
-      : ' mx-2 h-[4.5rem] overflow-hidden relative'}
-  >
-    {leagueInfo.leagueInfo}
-    {#if !showMoreBlurb}
-      <span class="absolute top-12 bg-white pl-1 right-0"> ... &nbsp; &nbsp;&nbsp;&nbsp; </span>
-      <button class="w-5 h-5"><ChevronDoubleDown /></button>
+{#if leagueInfo && user}
+  <div class="flex flex-col items-center gap-6 mx-4 lg:mx-16">
+    <p class="text-primary text-4xl text-center">Welcome to {leagueInfo.leagueName}</p>
+    {#if !blurbTooSmall}
+      <p
+        class={showMoreBlurb
+          ? 'mx-2 text-left relative'
+          : 'mx-2 max-h-[4.5rem] overflow-hidden relative'}
+      >
+        {leagueInfo.leagueInfo}
+        {#if !showMoreBlurb}
+          <span class="absolute top-12 bg-white pl-1 right-0"> ... &nbsp; &nbsp;&nbsp;&nbsp; </span>
+        {/if}
+      </p>
+      <button
+        class="w-10 h-10 place-self-end -mt-6"
+        on:click={() => {
+          showMoreBlurb = !showMoreBlurb;
+        }}
+      >
+        {#if showMoreBlurb}
+          <ChevronUp class="text-blue-500" />
+        {:else}
+          <ChevronDown class="text-blue-500" />
+        {/if}
+      </button>
+    {:else}
+      <p class={'mx-2 text-left relative'}>
+        {leagueInfo.leagueInfo}
+      </p>
     {/if}
-  </p>
-  <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Events</p>
-  <TableHeader headerTailwindCode={'listed-offers'}>
-    <p>Title</p>
-    <p>Address</p>
-    <p class="text-center">Price</p>
-    <p class="text-center">QTY</p>
-    <p class="text-center">Expires</p>
-    <p class="text-center">Status</p>
-    <p class="text-center">Action</p>
-  </TableHeader>
-  {#each leagueInfo.events as event, index}
-    <TableGrid headerTailwindCode={'listed-offers'} {index}>
-      <div class="flex flex-row gap-3 items-center pr-3 -my-5">{event.title}</div>
-      <p class={'secondary-text whitespace-nowrap overflow-hidden'}>asdf</p>
-    </TableGrid>
-  {/each}
-  <MobileTableHeader headerTailwindCode={'4'}>
-    <p>Date</p>
-    <p class="text-center">Time</p>
-    <p class="text-center">Series</p>
-    <p class="text-center">Vehicle Class</p>
-  </MobileTableHeader>
-  {#each leagueInfo.events as event, index}
-    <MobileTableGrid headerTailwindCode={'4'} {index}>
-      <p>{displayDateNumerical(event.startDate)}</p>
+    {#if leagueInfo.memberIds.find((x) => x === user?.email)}
+      Your are a member of this league
+    {/if}
+    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Series</p>
+    {#each leagueInfo.seriesEvents as series}
+      <a href="/league/{shortenedName}/{series.name}">{series.name}</a>
+    {/each}
+    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">Single Events</p>
+    {#each leagueInfo.singleEvents as event}
+      {event.title}
+    {/each}
 
-      <p class="text-center line-clamp-1">{event.eventInfo}</p>
-    </MobileTableGrid>
-  {/each}
-  {#if user && user.id === leagueInfo.ownerId}
-    <div class="w-20">
+    {#if user.id === leagueInfo.ownerId}
       <button on:click={() => launchAddEvent()} class="btn-primary">Add Event</button>
+    {:else if !leagueInfo.memberIds.find((x) => x === user?.email)}
+      <button on:click={() => joinLeague()} class="btn-primary">Join League</button>
+    {/if}
+  </div>
+{:else}
+  <div class="w-full">
+    <div class="h-20 my-2 mx-4">
+      <div class="skeleton-block" />
     </div>
-  {:else if leagueInfo.memberIds.find((x) => x === user?.email ?? 'aaa')}
-    Your are a member of this league
-  {:else}
-    <button on:click={() => joinLeague()} class="btn-primary">Join League</button>
-  {/if}
-</div>
+  </div>
+  <div class="w-full">
+    <div class="h-20 my-1 mx-4">
+      <div class="skeleton-block" />
+    </div>
+  </div>
+  <div class="w-full">
+    <div class="h-[500px] lg:h-[1200px] my-2 mx-4">
+      <div class="skeleton-block" />
+    </div>
+  </div>
+{/if}
