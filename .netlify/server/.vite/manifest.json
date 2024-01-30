@@ -7,11 +7,23 @@
     "isEntry": true,
     "src": ".svelte-kit/generated/server/internal.js"
   },
+  "_ExclamationCircle.js": {
+    "file": "chunks/ExclamationCircle.js",
+    "imports": [
+      "_index3.js"
+    ]
+  },
   "_common.js": {
     "file": "chunks/common.js",
     "imports": [
-      "_index2.js",
-      "_index.js"
+      "_index3.js",
+      "_index2.js"
+    ]
+  },
+  "_db.js": {
+    "file": "chunks/db.js",
+    "imports": [
+      "_index2.js"
     ]
   },
   "_index.js": {
@@ -20,7 +32,7 @@
   "_index2.js": {
     "file": "chunks/index2.js",
     "imports": [
-      "_index.js"
+      "_index3.js"
     ]
   },
   "_index3.js": {
@@ -29,7 +41,7 @@
   "_internal.js": {
     "file": "chunks/internal.js",
     "imports": [
-      "_index.js"
+      "_index3.js"
     ]
   },
   "_validation.js": {
@@ -39,7 +51,7 @@
     "file": "index.js",
     "imports": [
       "_internal.js",
-      "_index3.js",
+      "_index.js",
       "_index2.js"
     ],
     "isEntry": true,
@@ -48,62 +60,70 @@
   "src/routes/+error.svelte": {
     "file": "entries/pages/_error.svelte.js",
     "imports": [
-      "_index.js"
+      "_index3.js",
+      "_ExclamationCircle.js"
     ],
     "isEntry": true,
     "src": "src/routes/+error.svelte"
   },
   "src/routes/+layout.css": {
-    "file": "_app/immutable/assets/_layout.e766abbb.css",
+    "file": "_app/immutable/assets/_layout.5e00d96e.css",
     "src": "src/routes/+layout.css"
   },
   "src/routes/+layout.svelte": {
     "css": [
-      "_app/immutable/assets/_layout.e766abbb.css"
+      "_app/immutable/assets/_layout.5e00d96e.css"
     ],
     "file": "entries/pages/_layout.svelte.js",
     "imports": [
-      "_index.js",
-      "_common.js",
-      "_index2.js"
+      "_index3.js",
+      "_index2.js",
+      "_common.js"
     ],
     "isEntry": true,
     "src": "src/routes/+layout.svelte"
   },
   "src/routes/+page.css": {
-    "file": "_app/immutable/assets/_page.964cc1aa.css",
+    "file": "_app/immutable/assets/_page.84e5596b.css",
     "src": "src/routes/+page.css"
   },
   "src/routes/+page.svelte": {
     "css": [
-      "_app/immutable/assets/_page.964cc1aa.css"
+      "_app/immutable/assets/_page.84e5596b.css"
     ],
     "file": "entries/pages/_page.svelte.js",
     "imports": [
-      "_index.js",
+      "_index3.js",
+      "_db.js",
       "_common.js",
       "_validation.js"
     ],
     "isEntry": true,
     "src": "src/routes/+page.svelte"
   },
+  "src/routes/+page.ts": {
+    "file": "entries/pages/_page.ts.js",
+    "imports": [
+      "_db.js"
+    ],
+    "isEntry": true,
+    "src": "src/routes/+page.ts"
+  },
   "src/routes/confirm-signup/+page.svelte": {
     "file": "entries/pages/confirm-signup/_page.svelte.js",
     "imports": [
-      "_index.js"
+      "_index3.js"
     ],
     "isEntry": true,
     "src": "src/routes/confirm-signup/+page.svelte"
   },
   "src/routes/confirm-signup/+page.ts": {
     "file": "entries/pages/confirm-signup/_page.ts.js",
+    "imports": [
+      "_db.js"
+    ],
     "isEntry": true,
     "src": "src/routes/confirm-signup/+page.ts"
-  },
-  "src/routes/confirm-signup/+server.js": {
-    "file": "entries/endpoints/confirm-signup/_server.js",
-    "isEntry": true,
-    "src": "src/routes/confirm-signup/+server.js"
   },
   "src/routes/league/[league_name]/+page.css": {
     "file": "_app/immutable/assets/_page.35bb711e.css",
@@ -115,9 +135,10 @@
     ],
     "file": "entries/pages/league/_league_name_/_page.svelte.js",
     "imports": [
-      "_index.js",
+      "_index3.js",
       "_common.js",
-      "_validation.js"
+      "_validation.js",
+      "_db.js"
     ],
     "isEntry": true,
     "src": "src/routes/league/[league_name]/+page.svelte"
@@ -125,15 +146,41 @@
   "src/routes/league/[league_name]/+page.ts": {
     "file": "entries/pages/league/_league_name_/_page.ts.js",
     "imports": [
-      "_index3.js"
+      "_db.js"
     ],
     "isEntry": true,
     "src": "src/routes/league/[league_name]/+page.ts"
   },
+  "src/routes/league/[league_name]/[series]/+page.svelte": {
+    "file": "entries/pages/league/_league_name_/_series_/_page.svelte.js",
+    "imports": [
+      "_index3.js"
+    ],
+    "isEntry": true,
+    "src": "src/routes/league/[league_name]/[series]/+page.svelte"
+  },
+  "src/routes/league/[league_name]/[series]/+page.ts": {
+    "file": "entries/pages/league/_league_name_/_series_/_page.ts.js",
+    "imports": [
+      "_db.js",
+      "_index.js"
+    ],
+    "isEntry": true,
+    "src": "src/routes/league/[league_name]/[series]/+page.ts"
+  },
+  "src/routes/league/[league_name]/noLeague/+page.svelte": {
+    "file": "entries/pages/league/_league_name_/noLeague/_page.svelte.js",
+    "imports": [
+      "_index3.js",
+      "_ExclamationCircle.js"
+    ],
+    "isEntry": true,
+    "src": "src/routes/league/[league_name]/noLeague/+page.svelte"
+  },
   "src/routes/user/[user_id]/+page.svelte": {
     "file": "entries/pages/user/_user_id_/_page.svelte.js",
     "imports": [
-      "_index.js"
+      "_index3.js"
     ],
     "isEntry": true,
     "src": "src/routes/user/[user_id]/+page.svelte"
@@ -141,7 +188,7 @@
   "src/routes/user/[user_id]/+page.ts": {
     "file": "entries/pages/user/_user_id_/_page.ts.js",
     "imports": [
-      "_index3.js"
+      "_index.js"
     ],
     "isEntry": true,
     "src": "src/routes/user/[user_id]/+page.ts"

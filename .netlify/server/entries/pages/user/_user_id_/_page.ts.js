@@ -1,4 +1,4 @@
-import { e as error } from "../../../../chunks/index3.js";
+import { e as error } from "../../../../chunks/index.js";
 function load({ params }) {
   if (params.user_id) {
     return {

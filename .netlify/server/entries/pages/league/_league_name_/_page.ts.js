@@ -1,11 +1,20 @@
-import { e as error } from "../../../../chunks/index3.js";
-function load({ params }) {
-  if (params.league_name) {
+import { s as supabase, d as db } from "../../../../chunks/db.js";
+async function load({ params }) {
+  const supabaseListener = await supabase.auth.getUser();
+  const leagueInfo = await db.leagues.find(params.league_name);
+  const user = supabaseListener.data.user;
+  console.log(leagueInfo);
+  if (params.league_name && leagueInfo && user) {
     return {
-      leagueName: params.league_name
+      shortenedName: params.league_name,
+      user,
+      leagueInfo: leagueInfo[0]
+    };
+  } else {
+    return {
+      redirect: true
     };
   }
-  error(404, "Not found");
 }
 export {
   load
