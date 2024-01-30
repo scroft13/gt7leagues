@@ -1,104 +1,5 @@
+import { k as getContext, s as setContext, c as create_ssr_component, o as onDestroy, t as tick, g as compute_rest_props, d as subscribe, l as listen, p as bubble, q as prevent_default, r as stop_propagation, h as get_current_component, i as spread, j as escape_object, a as add_attribute, v as validate_component, m as missing_component, b as createEventDispatcher } from "./index3.js";
 import { w as writable } from "./index2.js";
-import { createClient } from "@supabase/supabase-js";
-import { g as getContext, h as setContext, c as create_ssr_component, p as onDestroy, t as tick, a as compute_rest_props, f as subscribe, q as listen, r as bubble, u as prevent_default, w as stop_propagation, o as get_current_component, b as spread, d as escape_object, i as add_attribute, v as validate_component, m as missing_component, j as createEventDispatcher } from "./index.js";
-const supabase = createClient(
-  "https://zruzsnhrgeffpppcliqf.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpydXpzbmhyZ2VmZnBwcGNsaXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDA1ODgzOTYsImV4cCI6MjAxNjE2NDM5Nn0.E32Q5p61P_31o6iQbbIrXN_DMdnp7wVX-1bC1x7QThM"
-);
-const userStore = writable();
-let user_id;
-supabase.auth.getSession().then(({ data }) => {
-  userStore.set(data.session?.user);
-  user_id = data.session?.user.id;
-});
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event == "SIGNED_IN" && session) {
-    userStore.set(session.user);
-  } else if (event == "SIGNED_OUT") {
-    userStore.set(null);
-  }
-});
-supabase.realtime;
-const db = {
-  get user() {
-    return userStore;
-  },
-  signIn(email) {
-    return supabase.auth.signInWithOtp({ email });
-  },
-  signOut() {
-    return supabase.auth.signOut();
-  },
-  createUser: {
-    async all() {
-      const { data } = await supabase.from("userInfo").select();
-      return data;
-    },
-    async create(email) {
-      console.log(email);
-      const { data } = await supabase.from("userInfo").insert({ user_id, email, leagues: [] }).select().maybeSingle();
-      return data;
-    }
-  },
-  ownedCarList: {
-    async update(carList) {
-      user_id ? await supabase.from("userInfo").update({
-        ownedCarList: [...carList]
-      }).eq("user_id", user_id) : null;
-    }
-  },
-  wantedCarList: {
-    async update(carList) {
-      user_id ? await supabase.from("userInfo").update({
-        wantedCarList: [...carList]
-      }).eq("user_id", user_id) : null;
-    }
-  },
-  publicEventsList: {
-    async all() {
-      const { data } = await supabase.from("publicEvents").select();
-      return data;
-    },
-    async insert(publicEvent) {
-      const publicDbEvent = {
-        user_id,
-        created_at: publicEvent.createdAt,
-        start_date: publicEvent.startDate,
-        start_time: publicEvent.startTime,
-        duration_hrs: publicEvent.durationHrs,
-        title: publicEvent.title,
-        vehicle_class: publicEvent.vehicleClass,
-        does_repeat: publicEvent.doesRepeat,
-        contact_type: publicEvent.contactType,
-        id: publicEvent.id,
-        end_date: publicEvent.endDate,
-        discord_server: publicEvent.discordServer,
-        email: publicEvent.email,
-        event_info: publicEvent.eventInfo
-      };
-      user_id ? await supabase.from("publicEvents").insert([publicDbEvent]) : null;
-    }
-  }
-};
-let carWantedListStore = writable();
-let localStorageWantedCarList;
-if (typeof localStorage !== "undefined") {
-  const localStorageCheck = localStorage.wantedCarList;
-  if (localStorageCheck) {
-    localStorageWantedCarList = localStorage.getItem("wantedCarList");
-  }
-}
-if (localStorageWantedCarList != "undefined" && localStorageWantedCarList != null) {
-  const storedCarWantedList = JSON.parse(localStorageWantedCarList) ?? [];
-  carWantedListStore = writable(storedCarWantedList);
-}
-if (typeof localStorage !== "undefined") {
-  carWantedListStore.subscribe(async (value) => {
-    localStorage.wantedCarList = JSON.stringify(value);
-    db.wantedCarList.update(value);
-  });
-}
-const toasts = writable([]);
 var State;
 (function(State2) {
   State2[State2["Open"] = 0] = "Open";
@@ -1385,7 +1286,5 @@ export {
   hasOpenClosed as k,
   Dialog as l,
   match as m,
-  supabase as s,
-  toasts as t,
   useDialogContext as u
 };

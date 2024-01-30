@@ -1,4 +1,5 @@
-import { g as getContext, c as create_ssr_component, a as compute_rest_props, b as spread, d as escape_object, f as subscribe, v as validate_component } from "../../chunks/index.js";
+import { k as getContext, c as create_ssr_component, d as subscribe, v as validate_component } from "../../chunks/index3.js";
+import { E as ExclamationCircle } from "../../chunks/ExclamationCircle.js";
 const getStores = () => {
   const stores = getContext("__svelte__");
   return {
@@ -20,20 +21,6 @@ const page = {
     return store.subscribe(fn);
   }
 };
-const ExclamationCircle = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let $$restProps = compute_rest_props($$props, []);
-  return `<svg${spread(
-    [
-      { xmlns: "http://www.w3.org/2000/svg" },
-      { fill: "none" },
-      { viewBox: "0 0 24 24" },
-      { stroke: "currentColor" },
-      { "aria-hidden": "true" },
-      escape_object($$restProps)
-    ],
-    {}
-  )}>${slots.default ? slots.default({}) : ``}<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-});
 const Error$1 = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $page, $$unsubscribe_page;
   $$unsubscribe_page = subscribe(page, (value) => $page = value);
