@@ -57,13 +57,11 @@
       validationSchema: formSchema,
       onSubmit: async (formData) => {
         const shortenedName = formData.leagueName.replace(/\s/g, '');
-        console.log('now');
         db.leagues
           .create({
             contactMethod: formData.contactMethod as 'Email' | 'Discord',
             leagueName: formData.leagueName,
             leagueAcronym: formData.leagueAcronym,
-            events: [],
             leagueInfo: formData.leagueInfo,
             email: formData.email,
             discordServer: formData.discordServer,
@@ -73,6 +71,8 @@
             mainLocation: formData.mainLocation,
             memberIds: [],
             shortenedName: shortenedName,
+            seriesEvents: [],
+            singleEvents: [],
           })
           .then(() => {
             addToast({

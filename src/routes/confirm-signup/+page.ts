@@ -1,8 +1,5 @@
 import { supabase } from '$lib/db.js';
 import type { EmailOtpType } from '@supabase/supabase-js';
-// import { redirect } from '@sveltejs/kit';
-
-console.log('now');
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ url }) {
@@ -14,10 +11,7 @@ export async function load({ url }) {
   const email = url.searchParams.get('email') as string;
 
   if (token_hash && type && email) {
-    const { error } = await supabase.auth.verifyOtp({ token_hash, type });
-    if (!error) {
-      console.log('You lucky bastard!');
-    }
+    await supabase.auth.verifyOtp({ token_hash, type });
   }
 
   // Function to extract the value of the 'token' parameter from the URL

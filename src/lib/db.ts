@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { writable } from 'svelte/store';
-import type { LeagueEvent, League, ServerEvent, UserCar } from './shared';
+import type { LeagueEvent, League, ServerEvent, UserCar, LeagueSeries } from './shared';
 
 import { goto } from '$app/navigation';
 
@@ -39,55 +39,31 @@ export default {
   signOut() {
     return supabase.auth.signOut();
   },
-  createUser: {
+  users: {
     async all() {
       const { data } = await supabase.from('userInfo').select();
       return data;
     },
     async create(email: string) {
-      console.log(email);
       const { data } = await supabase
         .from('userInfo')
-        .insert({ user_id, email: email, leagues: [] })
+        .insert({ user_id, email: email })
         .select()
         .maybeSingle();
-
       return data;
     },
-  },
-  ownedCarList: {
-    async update(carList: UserCar[]) {
-      user_id
-        ? await supabase
-            .from('userInfo')
-            .update({
-              ownedCarList: [...carList],
-            })
-            .eq('user_id', user_id)
-        : null;
+    async currentUsername() {
+      const data = await supabase.from('userInfo').select('*').eq('user_id', user_id);
+      if (data.data) return data.data[0].username;
     },
   },
-  wantedCarList: {
-    async update(carList: UserCar[]) {
-      user_id
-        ? await supabase
-            .from('userInfo')
-            .update({
-              wantedCarList: [...carList],
-            })
-            .eq('user_id', user_id)
-        : null;
-    },
-  },
+
   publicEventsList: {
     async all() {
       const { data } = await supabase.from('publicEvents').select();
       return data;
     },
     async insert(publicEvent: LeagueEvent) {
-      // endTimeDate = new Date(publicEvent.start_date),
-      // endTime = new Date(endTimeDate.setHours(endHours, endMins))
-
       const publicDbEvent: ServerEvent = {
         user_id: user_id,
         created_at: publicEvent.createdAt,
@@ -96,8 +72,7 @@ export default {
         duration_hrs: publicEvent.durationHrs,
         title: publicEvent.title,
         vehicle_class: publicEvent.vehicleClass,
-        does_repeat: publicEvent.doesRepeat,
-        contact_type: publicEvent.contactType,
+        is_series: publicEvent.isSeries,
         id: publicEvent.id,
         end_date: publicEvent.endDate,
         discord_server: publicEvent.discordServer,
@@ -105,8 +80,10 @@ export default {
         event_info: publicEvent.eventInfo,
         series: publicEvent.series,
         track: publicEvent.track,
+        leagueName: publicEvent.leagueName,
       };
-      user_id ? await supabase.from('publicEvents').insert([publicDbEvent]) : null;
+      const data = await supabase.from('publicEvents').insert([publicDbEvent]);
+      return data;
     },
   },
   leagues: {
@@ -115,7 +92,6 @@ export default {
       return data;
     },
     async create(league: League) {
-      console.log(league.ownerId);
       league.ownerId
         ? await supabase.from('leagues').insert(league).eq('ownerId', league.ownerId)
         : null;
@@ -125,11 +101,9 @@ export default {
         .from('leagues')
         .select('*')
         .eq('shortenedName', shortenedName);
-
       if (!error) {
         if (leagues.length != 0) return leagues;
       }
-      return goto('/league/' + shortenedName + '/noLeague');
     },
     async findOwned() {
       const { data: leagues } = await supabase.from('leagues').select('*').eq('ownerId', user_id);
@@ -152,6 +126,26 @@ export default {
         .eq('shortenedName', shortenedName);
 
       return leagues;
+    },
+    async addSingleEvent(event: LeagueEvent, shortenedName: string) {
+      const data = await supabase
+        .from('leagues')
+        .update({
+          singleEvents: [event],
+        })
+        .eq('shortenedName', shortenedName);
+
+      return data;
+    },
+    async addSeries(event: LeagueSeries, shortenedName: string) {
+      const data = await supabase
+        .from('leagues')
+        .update({
+          seriesEvents: [event],
+        })
+        .eq('shortenedName', shortenedName);
+
+      return data;
     },
   },
 };
