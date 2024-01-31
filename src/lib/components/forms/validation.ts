@@ -268,7 +268,7 @@ yup.addMethod(yup.string, 'valueNotUsed', function (values, errorMessage) {
       return true;
     }
     if (value && values.find((x: string) => x == value) != undefined) {
-      return createError({ path, message: 'Please choose an existing category from the list' });
+      return createError({ path, message: 'Your username has already been taken.' });
     } else {
       return true;
     }

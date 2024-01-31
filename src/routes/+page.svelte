@@ -341,7 +341,7 @@
 {#if showLeagueAddModal}
   <CreateLeagueModal open={showLeagueAddModal} on:close={() => (showLeagueAddModal = false)} />
 {/if}
-{#if setUsername}
+{#if user && setUsername}
   <SetUsername
     open={setUsername}
     on:close={() => (setUsername = false)}

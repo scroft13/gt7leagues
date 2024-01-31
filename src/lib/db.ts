@@ -60,6 +60,7 @@ export default {
       }
     },
     async setUsername(username: string) {
+      console.log(user_id);
       const response = await supabase
         .from('userInfo')
         .update({ username: username })
