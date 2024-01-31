@@ -18,6 +18,7 @@ declare module 'yup' {
     verifyCheckoutDate(): StringSchema;
     verifyCheckInDate(): StringSchema;
     greaterThan(): StringSchema;
+    valueNotUsed(valueList: string[]): StringSchema;
   }
   interface NumberSchema {
     quantityCheck(number: number): NumberSchema;
