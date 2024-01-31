@@ -261,5 +261,17 @@ yup.addMethod(yup.string, 'verifyCheckInDate', function (errorMessage) {
     }
   });
 });
-
+yup.addMethod(yup.string, 'valueNotUsed', function (values, errorMessage) {
+  return this.test(`valueNotUsed`, errorMessage, function (value) {
+    const { path, createError } = this;
+    if (!value) {
+      return true;
+    }
+    if (value && values.find((x: string) => x == value) != undefined) {
+      return createError({ path, message: 'Please choose an existing category from the list' });
+    } else {
+      return true;
+    }
+  });
+});
 export default yup;

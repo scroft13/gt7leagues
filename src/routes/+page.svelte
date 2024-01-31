@@ -13,12 +13,13 @@
   import LoginModal from '$lib/components/LoginModal.svelte';
   import CreateLeagueModal from '$lib/components/CreateLeagueModal.svelte';
   import type { PageData } from './$types';
+  import SetUsername from '$lib/components/SetUsername.svelte';
 
   const plugins = [DayGrid, TimeGrid];
   export let data: PageData;
 
   let setUsername = false;
-  data.username === null ? (setUsername = true) : (setUsername = false);
+
   let ec: Calendar;
   let events: CalendarEvents[] = [];
   let isPopupVisible = false;
@@ -58,6 +59,7 @@
 
   onMount(async () => {
     // Listen to inserts
+    data.username === null ? (setUsername = true) : (setUsername = false);
     const {
       data: { subscription: authListener },
     } = supabase.auth.onAuthStateChange((_, session) => {
@@ -338,6 +340,13 @@
 {/if}
 {#if showLeagueAddModal}
   <CreateLeagueModal open={showLeagueAddModal} on:close={() => (showLeagueAddModal = false)} />
+{/if}
+{#if setUsername}
+  <SetUsername
+    open={setUsername}
+    on:close={() => (setUsername = false)}
+    usernameList={data.usernameList}
+  />
 {/if}
 
 <div id="main-div" bind:clientWidth>

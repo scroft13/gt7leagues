@@ -22,9 +22,8 @@ export type UserCar = {
 export type UserInfo = {
   created_at: string;
   user_id: string;
-  carsOwned: UserCar[];
-  carsWanted: UserCar[];
-  leagues: League[];
+  username: string;
+  email: string;
 };
 
 export type CalendarEvents = {

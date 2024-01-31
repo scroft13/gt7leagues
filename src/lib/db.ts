@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { writable } from 'svelte/store';
-import type { LeagueEvent, League, ServerEvent, UserCar, LeagueSeries } from './shared';
-
-import { goto } from '$app/navigation';
+import type { LeagueEvent, League, ServerEvent, LeagueSeries } from './shared';
+import { error } from '@sveltejs/kit';
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -52,9 +51,37 @@ export default {
         .maybeSingle();
       return data;
     },
-    async currentUsername() {
+    async currentUsername(): Promise<string> {
       const data = await supabase.from('userInfo').select('*').eq('user_id', user_id);
-      if (data.data) return data.data[0].username;
+      if (data.data && data.data.length >= 1) {
+        return data.data[0].username;
+      } else {
+        return '';
+      }
+    },
+    async setUsername(username: string) {
+      const response = await supabase
+        .from('userInfo')
+        .update({ username: username })
+        .eq('user_id', user_id);
+      return response;
+    },
+    async getUsernameList() {
+      const data = await supabase.from('userInfo').select('*');
+
+      if (data.data) {
+        const usernameList: (string | null)[] = data.data?.map(
+          (userInfo: {
+            user_id: string;
+            created_at: Date;
+            email: string;
+            username: string | null;
+          }) => {
+            return userInfo.username;
+          },
+        );
+        return usernameList;
+      }
     },
   },
 
