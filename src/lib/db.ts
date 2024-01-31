@@ -59,6 +59,14 @@ export default {
         return '';
       }
     },
+    async checkIfUserExistsInDb(): boolean {
+      const data = await supabase.from('userInfo').select('*').eq('user_id', user_id);
+      if (data.data && data.data.length >= 1) {
+        return true;
+      } else {
+        return false;
+      }
+    },
     async setUsername(username: string) {
       console.log(user_id);
       const response = await supabase

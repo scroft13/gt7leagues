@@ -50,6 +50,10 @@
           supabase.auth
             .signInWithPassword({ email: formData.email, password: formData.password })
             .then(({ data: { session }, error }) => {
+              let firstLogin = db.users.checkIfUserExistsInDb();
+              if (firstLogin) {
+                db.users.create(formData.email);
+              }
               console.log(session?.user);
               if (error) {
                 addToast({
@@ -68,7 +72,6 @@
         } else {
           supabase.auth.signUp({ email: formData.email, password: formData.password });
           supabase.auth.getSession().then(() => {
-            db.users.create(formData.email);
             addToast({
               id: 1,
               message: 'Please check confirmation email to login',
