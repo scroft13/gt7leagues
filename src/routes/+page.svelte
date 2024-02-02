@@ -360,7 +360,6 @@
       checkUsernameOnList();
     }}
     on:forgotPassword={() => {
-      console.log('now');
       showLoginModal = false;
       showForgotPassword = true;
     }}

@@ -48,8 +48,6 @@
     }),
     { form } = formState;
   export let data: PageData;
-
-  $: console.log(data.validToken);
 </script>
 
 <div class="mx-4 lg:mx-16 xl:mx-40">

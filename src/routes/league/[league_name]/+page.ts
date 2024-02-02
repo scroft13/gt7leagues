@@ -8,7 +8,6 @@ export async function load({ params }) {
   const leagueInfo: League[] | void = await db.leagues.find(params.league_name);
   const user: User | null = supabaseListener.data.user;
 
-  console.log(leagueInfo);
   if (params.league_name && leagueInfo && user) {
     return {
       shortenedName: params.league_name,

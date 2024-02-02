@@ -33,8 +33,7 @@
       onSubmit: async (formData) => {
         db.users
           .setUsername(formData.username)
-          .then((response) => {
-            console.log(response);
+          .then(() => {
             addToast({
               id: Math.floor(Math.random() * 100),
               dismissible: true,
@@ -44,7 +43,6 @@
             });
           })
           .catch((error: Error) => {
-            console.log(error);
             addToast({
               id: Math.floor(Math.random() * 100),
               dismissible: true,

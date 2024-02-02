@@ -43,7 +43,6 @@ export default {
       return data;
     },
     async create(email: string, input_id: string) {
-      console.log(input_id);
       const { data } = await supabase
         .from('userInfo')
         .insert({ user_id: input_id, email: email })

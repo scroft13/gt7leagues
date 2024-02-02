@@ -51,9 +51,7 @@
             .signInWithPassword({ email: formData.email, password: formData.password })
             .then(async ({ data: { session }, error }) => {
               let userExists = await db.users.checkIfUserExistsInDb(session?.user.id ?? '');
-              console.log(userExists);
               if (session && !userExists === true) {
-                console.log(session?.user);
                 db.users.create(formData.email, session.user.id);
               }
               if (error) {

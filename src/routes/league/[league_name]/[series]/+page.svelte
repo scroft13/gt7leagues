@@ -11,7 +11,6 @@
     let multipleSeries: LeagueSeries[] = leagueInfo.seriesEvents;
     seriesInfo = multipleSeries.filter((x) => x.name === data.seriesName)[0];
   }
-  $: console.log(leagueInfo, seriesInfo);
 </script>
 
 {data.seriesName}

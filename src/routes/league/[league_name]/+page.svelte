@@ -40,7 +40,6 @@
         });
     });
   }
-  console.log(data);
 </script>
 
 {#if openEventModal}
