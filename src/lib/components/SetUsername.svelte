@@ -10,7 +10,7 @@
   import LabeledField from '$lib/components/forms/labeledComponents/LabeledField.svelte';
   import yup from '$lib/components/forms/validation';
   import { createForm } from 'svelte-forms-lib';
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
 
   import db, { supabase } from '$lib/db';
   import { addToast } from '$lib/stores';
@@ -18,7 +18,6 @@
   export let open = false;
   const dispatch = createEventDispatcher();
   export let usernameList: string[] | undefined;
-  let ownerID: string;
 
   if (!usernameList) {
     usernameList = [];
@@ -26,11 +25,6 @@
 
   const formSchema = yup.object().shape({
     username: yup.string().required().valueNotUsed(usernameList).default(''),
-  });
-
-  onMount(async () => {
-    const user = await supabase.auth.getUser();
-    user.data.user ? (ownerID = user.data.user?.id) : null;
   });
 
   const formState = createForm<FormData>({

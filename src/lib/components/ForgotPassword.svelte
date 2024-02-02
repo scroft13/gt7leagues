@@ -22,7 +22,9 @@
 
   const resetPassword = async (email: string) => {
     try {
-      await supabase.auth.resetPasswordForEmail(email);
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://www.gt7leagues.com/password-reset',
+      });
       console.log('Password reset email sent successfully');
     } catch (error: any) {
       console.error('Error sending password reset email:', error.message);
