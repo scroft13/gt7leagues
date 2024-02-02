@@ -23,6 +23,8 @@
   export let open = false;
   export let leagueName: string;
   export let shortenedName: string;
+  export let userId: string;
+  let formCopy: FormData;
   const dispatch = createEventDispatcher();
   const formSchema = yup.object().shape({
     contactName: yup.string().required().default(''),
@@ -63,93 +65,96 @@
     let id: number = Math.floor(Math.random() * 100000);
     let errorFlag = false;
 
-    form.subscribe((x) => {
-      const dateStringWithTime = new Date(`${x.startDate}T${x.startTime}`);
-      db.publicEventsList
-        .insert({
+    const dateStringWithTime = new Date(`${formCopy.startDate}T${formCopy.startTime}`);
+    db.publicEventsList
+      .insert(
+        {
           leagueName: leagueName,
-          isSeries: x.repeatWeekly,
-          durationHrs: x.duration,
+          isSeries: formCopy.repeatWeekly,
+          durationHrs: formCopy.duration,
           startDate: dateStringWithTime,
-          startTime: x.startTime,
-          vehicleClass: x.vehicleClass,
-          discordServer: x.discordServer,
+          startTime: formCopy.startTime,
+          vehicleClass: formCopy.vehicleClass,
+          discordServer: formCopy.discordServer,
           id: id,
-          title: leagueName + ' ' + x.vehicleClass,
+          title: leagueName + ' ' + formCopy.vehicleClass,
           createdAt: new Date(),
-          endDate: x.endDate ? new Date(x.endDate) : new Date(x.startDate),
-          eventInfo: x.eventInfo,
-          series: x.series,
-          track: x.track,
-        })
-        .then(() => {
-          if (x.repeatWeekly) {
-            db.leagues
-              .addSeries(
-                {
-                  name: x.series,
-                  members: [],
-                  eventDetails: {
-                    leagueName: leagueName,
-                    isSeries: x.repeatWeekly,
-                    durationHrs: x.duration,
-                    startDate: dateStringWithTime,
-                    startTime: x.startTime,
-                    vehicleClass: x.vehicleClass,
-                    discordServer: x.discordServer,
-                    id: id,
-                    title: leagueName + ' ' + x.vehicleClass,
-                    createdAt: new Date(),
-                    endDate: x.endDate ? new Date(x.endDate) : new Date(x.startDate),
-                    eventInfo: x.eventInfo,
-                    series: x.series,
-                    track: 'Revolving',
-                  },
-                },
-                shortenedName,
-              )
-              .catch(() => (errorFlag = true));
-          } else {
-            db.leagues
-              .addSingleEvent(
-                {
+          endDate: formCopy.endDate ? new Date(formCopy.endDate) : new Date(formCopy.startDate),
+          eventInfo: formCopy.eventInfo,
+          series: formCopy.series,
+          track: formCopy.track,
+        },
+        userId,
+      )
+      .then(() => {
+        if (formCopy.repeatWeekly) {
+          db.leagues
+            .addSeries(
+              {
+                name: formCopy.series,
+                members: [],
+                eventDetails: {
                   leagueName: leagueName,
-                  isSeries: x.repeatWeekly,
-                  durationHrs: x.duration,
+                  isSeries: formCopy.repeatWeekly,
+                  durationHrs: formCopy.duration,
                   startDate: dateStringWithTime,
-                  startTime: x.startTime,
-                  vehicleClass: x.vehicleClass,
-                  discordServer: x.discordServer,
+                  startTime: formCopy.startTime,
+                  vehicleClass: formCopy.vehicleClass,
+                  discordServer: formCopy.discordServer,
                   id: id,
-                  title: leagueName + ' ' + x.vehicleClass,
+                  title: leagueName + ' ' + formCopy.vehicleClass,
                   createdAt: new Date(),
-                  endDate: x.endDate ? new Date(x.endDate) : new Date(x.startDate),
-                  eventInfo: x.eventInfo,
-                  series: x.series,
-                  track: x.track,
+                  endDate: formCopy.endDate
+                    ? new Date(formCopy.endDate)
+                    : new Date(formCopy.startDate),
+                  eventInfo: formCopy.eventInfo,
+                  series: formCopy.series,
+                  track: 'Revolving',
                 },
-                shortenedName,
-              )
-              .catch(() => (errorFlag = true));
-          }
-        })
-        .catch(() => (errorFlag = true));
+              },
+              shortenedName,
+            )
+            .catch(() => (errorFlag = true));
+        } else {
+          db.leagues
+            .addSingleEvent(
+              {
+                leagueName: leagueName,
+                isSeries: formCopy.repeatWeekly,
+                durationHrs: formCopy.duration,
+                startDate: dateStringWithTime,
+                startTime: formCopy.startTime,
+                vehicleClass: formCopy.vehicleClass,
+                discordServer: formCopy.discordServer,
+                id: id,
+                title: leagueName + ' ' + formCopy.vehicleClass,
+                createdAt: new Date(),
+                endDate: formCopy.endDate
+                  ? new Date(formCopy.endDate)
+                  : new Date(formCopy.startDate),
+                eventInfo: formCopy.eventInfo,
+                series: formCopy.series,
+                track: formCopy.track,
+              },
+              shortenedName,
+            )
+            .catch(() => (errorFlag = true));
+        }
+      })
+      .catch(() => (errorFlag = true));
 
-      if (!errorFlag) {
-        addToast({
-          id: Math.floor(Math.random() * 100),
-          dismissible: true,
-          timeout: 2000,
-          type: 'success',
-          message: `Your ${x.repeatWeekly ? 'series' : 'event'} has been saved`,
-        });
-        close();
-      }
-    });
+    if (!errorFlag) {
+      addToast({
+        type: 'success',
+        message: `Your ${formCopy.repeatWeekly ? 'series' : 'event'} has been saved`,
+        id: Math.floor(Math.random() * 10000),
+      });
+      close();
+    }
   }
 
-  $: form.subscribe((x) => {
-    repeatWeekly = x.repeatWeekly;
+  $: form.subscribe((form) => {
+    formCopy = form;
   });
 </script>
 

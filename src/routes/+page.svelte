@@ -127,8 +127,8 @@
       };
     }
     if (user) {
-      ownedLeagues = (await db.leagues.findOwned()) ?? [];
-      joinedLeagues = (await db.leagues.findJoined()) ?? [];
+      ownedLeagues = (await db.leagues.findOwned(user.id ?? '')) ?? [];
+      joinedLeagues = (await db.leagues.findJoined(user.email ?? '')) ?? [];
     }
     loading = false;
     return () => {

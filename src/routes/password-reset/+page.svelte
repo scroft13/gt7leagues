@@ -19,26 +19,22 @@
       .default(''),
   });
   let submitted = false;
-
+  let formCopy: FormData;
   const resetPassword = async () => {
-    form.subscribe(async (x) => {
-      try {
-        supabase.auth.updateUser({
-          password: x.confirmPassword,
-        });
-      } catch (error: any) {
-        console.error('Error sending password reset email:', error.message);
-      } finally {
-        addToast({
-          id: Math.floor(Math.random() * 100),
-          dismissible: true,
-          timeout: 2000,
-          type: 'success',
-          message: `Your password has been updated`,
-        });
-        goto('/');
-      }
-    });
+    try {
+      supabase.auth.updateUser({
+        password: formCopy.confirmPassword,
+      });
+    } catch (error: any) {
+      console.error('Error sending password reset email:', error.message);
+    } finally {
+      addToast({
+        type: 'success',
+        message: `Your password has been updated`,
+        id: Math.floor(Math.random() * 10000),
+      });
+      goto('/');
+    }
   };
 
   const formState = createForm<FormData>({
@@ -48,6 +44,9 @@
     }),
     { form } = formState;
   export let data: PageData;
+  $: form.subscribe((form) => {
+    formCopy = form;
+  });
 </script>
 
 <div class="mx-4 lg:mx-16 xl:mx-40">

@@ -14,3 +14,4 @@
 </script>
 
 {data.seriesName}
+{data}

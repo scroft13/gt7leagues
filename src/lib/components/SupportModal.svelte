@@ -48,21 +48,17 @@
         account?.sendSupportMessage({ message: formData.message, url: url }).then(
           () => {
             addToast({
-              id: 1234,
-              dismissible: true,
-              timeout: 2000,
               type: 'success',
               message: 'Your Message Has Been Sent',
+              id: Math.floor(Math.random() * 10000),
             });
             close();
           },
           (error: Error) =>
             addToast({
-              id: Math.floor(Math.random() * 100),
               message: error.message,
               type: 'error',
-              dismissible: true,
-              timeout: 5000,
+              id: Math.floor(Math.random() * 10000),
             }),
         );
         loading = false;

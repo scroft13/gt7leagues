@@ -56,11 +56,9 @@
               }
               if (error) {
                 return addToast({
-                  id: 2,
                   message: error.message,
                   type: 'error',
-                  dismissible: true,
-                  timeout: 20,
+                  id: Math.floor(Math.random() * 10000),
                 });
               } else {
                 return close();
@@ -72,11 +70,9 @@
           supabase.auth.signUp({ email: formData.email, password: formData.password });
           supabase.auth.getSession().then(() => {
             addToast({
-              id: 1,
               message: 'Please check confirmation email to login',
               type: 'success',
-              dismissible: true,
-              timeout: 20,
+              id: Math.floor(Math.random() * 10000),
             });
             close();
           });
