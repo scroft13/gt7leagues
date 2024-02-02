@@ -14,6 +14,9 @@
   import CreateLeagueModal from '$lib/components/CreateLeagueModal.svelte';
   import type { PageData } from './$types';
   import SetUsername from '$lib/components/SetUsername.svelte';
+  import ForgotPassword from '$lib/components/ForgotPassword.svelte';
+  import ChevronUp from '@rgossiaux/svelte-heroicons/outline/ChevronUp';
+  import ChevronDown from '@rgossiaux/svelte-heroicons/outline/ChevronDown';
 
   const plugins = [DayGrid, TimeGrid];
   export let data: PageData;
@@ -50,10 +53,12 @@
   };
   let showLeagueAddModal = false;
   let showLoginModal = false;
+  let showForgotPassword = false;
   let isLoginMode = false;
   let loading = true;
   let ownedLeagues: League[] = [];
   let joinedLeagues: League[] = [];
+  let showMoreBlurb = false;
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -121,8 +126,10 @@
         },
       };
     }
-    ownedLeagues = (await db.leagues.findOwned()) ?? [];
-    joinedLeagues = (await db.leagues.findJoined()) ?? [];
+    if (user) {
+      ownedLeagues = (await db.leagues.findOwned()) ?? [];
+      joinedLeagues = (await db.leagues.findJoined()) ?? [];
+    }
     loading = false;
     return () => {
       authListener?.unsubscribe();
@@ -329,6 +336,15 @@
     }
   }
 
+  async function checkUsernameOnList() {
+    if (user) {
+      const username = await db.users.currentUsername(user.id);
+      if (!username) {
+        setUsername = true;
+      }
+    }
+  }
+
   function launchLoginModal(loginMode: boolean) {
     showLoginModal = true;
     isLoginMode = loginMode;
@@ -336,15 +352,33 @@
 </script>
 
 {#if showLoginModal}
-  <LoginModal open={showLoginModal} {isLoginMode} on:close={() => (showLoginModal = false)} />
+  <LoginModal
+    open={showLoginModal}
+    {isLoginMode}
+    on:close={() => {
+      showLoginModal = false;
+      checkUsernameOnList();
+    }}
+    on:forgotPassword={() => {
+      console.log('now');
+      showLoginModal = false;
+      showForgotPassword = true;
+    }}
+  />
 {/if}
 {#if showLeagueAddModal}
   <CreateLeagueModal open={showLeagueAddModal} on:close={() => (showLeagueAddModal = false)} />
 {/if}
+{#if showForgotPassword}
+  <ForgotPassword open={showForgotPassword} on:close={() => (showForgotPassword = false)} />
+{/if}
 {#if user && setUsername}
   <SetUsername
     open={setUsername}
-    on:close={() => (setUsername = false)}
+    on:close={() => {
+      setUsername = false;
+      checkUsernameOnList();
+    }}
     usernameList={data.usernameList}
   />
 {/if}
@@ -391,34 +425,57 @@
           </div>
         </div>
       {:else}
-        <div class="w-full items-center justify-center flex flex-col gap-6">
-          <p class="mx-4 lg:mx-16 body-text">
+        <div
+          class={showMoreBlurb
+            ? 'mx-4 lg:mx-16 text-left relative body-text flex flex-col gap-2'
+            : 'mx-4 lg:mx-16 max-h-14 lg:max-h-[4.5rem] overflow-hidden relative body-text flex flex-col gap-2'}
+        >
+          <p>
             Welcome to GT7 Leagues, your ultimate destination for organized and competitive racing
             experiences! Dive into the thrilling world of Gran Turismo 7 with our comprehensive
             league management platform. Discover a dynamic calendar featuring an array of exciting
             leagues, each with its own unique schedule and challenges.
           </p>
-          <p class="mx-4 lg:mx-16 body-text">
+          <p>
             At GT7 Leagues, you have the power to take control of your racing destiny. Whether
             you're a seasoned pro or a novice driver, our platform empowers you to create or join
             leagues that match your skill level and preferences. Immerse yourself in a community of
             passionate racers who share your enthusiasm for high-speed competition.
           </p>
-          <p class="mx-4 lg:mx-16 body-text">
+          <p>
             Explore individual league pages to access detailed information, including schedules,
             leaderboards, and unique league characteristics. GT7 Leagues provides a hub for
             like-minded individuals to connect, compete, and celebrate their love for virtual
             racing.
           </p>
-          <p class="mx-4 lg:mx-16 body-text">
+          <p>
             Gear up for the ultimate racing experience – GT7 Leagues is not just a platform; it's a
             community where the pursuit of speed meets the joy of camaraderie. Join us on the track
             and let the thrill of competitive racing unfold!
           </p>
+          {#if !showMoreBlurb}
+            <span class="absolute top-8 bg-white pl-3 right-0">
+              ... &nbsp; &nbsp;&nbsp;&nbsp;
+            </span>
+          {/if}
         </div>
-        <div class="flex-row">
+        <button
+          class="w-10 h-10 place-self-end -mt-4 mr-8 lg:mr-20 "
+          on:click={() => {
+            showMoreBlurb = !showMoreBlurb;
+          }}
+        >
+          {#if showMoreBlurb}
+            <ChevronUp class="text-blue-500" />
+          {:else}
+            <ChevronDown class="text-blue-500" />
+          {/if}
+        </button>
+        <div class="lg:flex-row flex-col items-center justify-center w-full flex gap-2">
           <button class="btn-primary" on:click={() => launchLoginModal(false)}> Sign Up</button>
-          <button class="btn-primary ml-12" on:click={() => launchLoginModal(true)}> Log In</button>
+          <button class="btn-primary lg:ml-12" on:click={() => launchLoginModal(true)}>
+            Log In</button
+          >
         </div>
       {/if}
       <!-- <div id="ec" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" />

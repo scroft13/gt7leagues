@@ -340,4 +340,7 @@
   .popover-background {
     @apply bg-white dark:bg-gray-background;
   }
+  .hr-div {
+    @apply bg-gray-200 dark:bg-gray-600 w-full h-[1px];
+  }
 }
