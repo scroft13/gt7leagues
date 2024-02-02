@@ -99,9 +99,9 @@ export default {
       const { data } = await supabase.from('publicEvents').select();
       return data;
     },
-    async insert(publicEvent: LeagueEvent) {
+    async insert(publicEvent: LeagueEvent, userId: string) {
       const publicDbEvent: ServerEvent = {
-        user_id: user_id,
+        user_id: userId,
         created_at: publicEvent.createdAt,
         start_date: publicEvent.startDate,
         start_time: publicEvent.startTime,
@@ -112,7 +112,6 @@ export default {
         id: publicEvent.id,
         end_date: publicEvent.endDate,
         discord_server: publicEvent.discordServer,
-        email: publicEvent.email,
         event_info: publicEvent.eventInfo,
         series: publicEvent.series,
         track: publicEvent.track,
@@ -141,16 +140,16 @@ export default {
         if (leagues.length != 0) return leagues;
       }
     },
-    async findOwned() {
-      const { data: leagues } = await supabase.from('leagues').select('*').eq('ownerId', user_id);
+    async findOwned(id: string) {
+      const { data: leagues } = await supabase.from('leagues').select('*').eq('ownerId', id);
 
       return leagues;
     },
-    async findJoined() {
+    async findJoined(email: string) {
       const { data: leagues } = await supabase
         .from('leagues')
         .select('*')
-        .contains('memberIds', [user_email]);
+        .contains('memberIds', [email]);
       return leagues;
     },
     async join(shortenedName: string) {

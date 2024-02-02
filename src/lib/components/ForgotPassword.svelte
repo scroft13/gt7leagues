@@ -40,11 +40,9 @@
         loading = true;
         resetPassword(formData.email);
         addToast({
-          id: Math.floor(Math.random() * 100),
-          dismissible: true,
-          timeout: 2000,
           type: 'success',
           message: `Please check your inbox to proceed.`,
+          id: Math.floor(Math.random() * 10000),
         });
         close();
       },

@@ -76,21 +76,17 @@
           })
           .then(() => {
             addToast({
-              id: Math.floor(Math.random() * 100),
-              dismissible: true,
-              timeout: 2000,
               type: 'success',
               message: 'Your League Has Been Created!',
+              id: Math.floor(Math.random() * 10000),
             });
             goto('/league/' + shortenedName);
           })
           .catch((error: Error) => {
             addToast({
-              id: Math.floor(Math.random() * 100),
-              dismissible: true,
-              timeout: 2000,
               type: 'error',
               message: error.message,
+              id: Math.floor(Math.random() * 10000),
             });
           });
         close();

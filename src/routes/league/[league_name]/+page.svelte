@@ -17,6 +17,7 @@
   let user: User | null = data.user ?? null;
   let showMoreBlurb = false;
   let blurbTooSmall: boolean;
+  let userId: string = data.user?.id ?? '';
 
   onMount(async () => {
     if (data.redirect) goto('/league/notfound/noLeague');
@@ -32,11 +33,9 @@
     db.leagues.join(shortenedName).then(() => {
       if (leagueInfo)
         addToast({
-          id: Math.floor(Math.random() * 100),
-          dismissible: true,
-          timeout: 2000,
           type: 'success',
           message: 'You have joined ' + leagueInfo.leagueName + '. Good Racing!',
+          id: Math.floor(Math.random() * 10000),
         });
     });
   }
@@ -50,6 +49,7 @@
     }}
     leagueName={leagueInfo?.leagueAcronym ?? ''}
     {shortenedName}
+    {userId}
   />
 {/if}
 {#if leagueInfo && user}

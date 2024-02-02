@@ -35,20 +35,16 @@
           .setUsername(formData.username)
           .then(() => {
             addToast({
-              id: Math.floor(Math.random() * 100),
-              dismissible: true,
-              timeout: 2000,
               type: 'success',
               message: 'Your username has been set.',
+              id: Math.floor(Math.random() * 10000),
             });
           })
           .catch((error: Error) => {
             addToast({
-              id: Math.floor(Math.random() * 100),
-              dismissible: true,
-              timeout: 2000,
               type: 'error',
               message: error.message,
+              id: Math.floor(Math.random() * 10000),
             });
           });
         close();
