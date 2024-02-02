@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { writable } from 'svelte/store';
 import type { LeagueEvent, League, ServerEvent, LeagueSeries } from './shared';
-import { error } from '@sveltejs/kit';
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -43,24 +42,25 @@ export default {
       const { data } = await supabase.from('userInfo').select();
       return data;
     },
-    async create(email: string) {
+    async create(email: string, input_id: string) {
+      console.log(input_id);
       const { data } = await supabase
         .from('userInfo')
-        .insert({ user_id, email: email })
+        .insert({ user_id: input_id, email: email })
         .select()
         .maybeSingle();
       return data;
     },
-    async currentUsername(): Promise<string> {
-      const data = await supabase.from('userInfo').select('*').eq('user_id', user_id);
+    async currentUsername(id: string): Promise<string> {
+      const data = await supabase.from('userInfo').select('*').eq('user_id', id);
       if (data.data && data.data.length >= 1) {
         return data.data[0].username;
       } else {
         return '';
       }
     },
-    async checkIfUserExistsInDb(): boolean {
-      const data = await supabase.from('userInfo').select('*').eq('user_id', user_id);
+    async checkIfUserExistsInDb(id: string): Promise<boolean> {
+      const data = await supabase.from('userInfo').select('*').eq('user_id', id);
       if (data.data && data.data.length >= 1) {
         return true;
       } else {
@@ -68,11 +68,12 @@ export default {
       }
     },
     async setUsername(username: string) {
-      console.log(user_id);
+      const user = await supabase.auth.getUser();
+      const id = user.data.user?.id;
       const response = await supabase
         .from('userInfo')
         .update({ username: username })
-        .eq('user_id', user_id);
+        .match({ user_id: id });
       return response;
     },
     async getUsernameList() {

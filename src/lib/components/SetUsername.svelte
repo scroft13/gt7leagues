@@ -10,7 +10,7 @@
   import LabeledField from '$lib/components/forms/labeledComponents/LabeledField.svelte';
   import yup from '$lib/components/forms/validation';
   import { createForm } from 'svelte-forms-lib';
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
 
   import db, { supabase } from '$lib/db';
   import { addToast } from '$lib/stores';
@@ -18,16 +18,13 @@
   export let open = false;
   const dispatch = createEventDispatcher();
   export let usernameList: string[] | undefined;
+
   if (!usernameList) {
     usernameList = [];
   }
+
   const formSchema = yup.object().shape({
     username: yup.string().required().valueNotUsed(usernameList).default(''),
-  });
-  let ownerID: string;
-  onMount(async () => {
-    const user = await supabase.auth.getUser();
-    user.data.user ? (ownerID = user.data.user?.id) : null;
   });
 
   const formState = createForm<FormData>({
@@ -65,10 +62,22 @@
 
   function close() {
     open = false;
-
     setTimeout(() => {
       dispatch('close');
     }, 400);
+  }
+
+  async function logout(): Promise<void> {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw new Error(error.message);
+      } else {
+        close();
+      }
+    } catch (error: any) {
+      console.error('Error logging out:', error.message);
+    }
   }
 </script>
 
@@ -127,6 +136,9 @@
             </div>
             <div class="wide footer">
               <button type="submit"> Submit </button>
+            </div>
+            <div class="mb-4">
+              <button class="text-primary font-bold" on:click={() => logout()}>Log Out</button>
             </div>
           </Form>
         </div>

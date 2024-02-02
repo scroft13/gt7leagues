@@ -1,12 +1,12 @@
-import db from '$lib/db.js';
+import db, { supabase } from '$lib/db.js';
 import type { UserInfo } from '$lib/shared';
 
 /** @type {import('./$types').PageLoad} */
 export async function load() {
-  const username = await db.users.currentUsername();
-
+  const session = await supabase.auth.getUser();
+  const id = session.data.user?.id ?? '';
+  const username = await db.users.currentUsername(id);
   const data = await db.users.getUsernameList();
-
   const usernameList = data?.map((x) => {
     if (x) {
       return x;

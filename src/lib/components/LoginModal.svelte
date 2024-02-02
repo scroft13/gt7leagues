@@ -49,14 +49,15 @@
         if (isLoginMode) {
           supabase.auth
             .signInWithPassword({ email: formData.email, password: formData.password })
-            .then(({ data: { session }, error }) => {
-              let firstLogin = db.users.checkIfUserExistsInDb();
-              if (firstLogin) {
-                db.users.create(formData.email);
+            .then(async ({ data: { session }, error }) => {
+              let userExists = await db.users.checkIfUserExistsInDb(session?.user.id ?? '');
+              console.log(userExists);
+              if (session && !userExists === true) {
+                console.log(session?.user);
+                db.users.create(formData.email, session.user.id);
               }
-              console.log(session?.user);
               if (error) {
-                addToast({
+                return addToast({
                   id: 2,
                   message: error.message,
                   type: 'error',
@@ -64,7 +65,7 @@
                   timeout: 20,
                 });
               } else {
-                close();
+                return close();
               }
             });
           loading = false;
@@ -90,6 +91,13 @@
     open = false;
     setTimeout(() => {
       dispatch('close');
+    }, 400);
+  }
+
+  function forgotPassword() {
+    open = false;
+    setTimeout(() => {
+      dispatch('forgotPassword');
     }, 400);
   }
 </script>
@@ -131,6 +139,7 @@
             <h4>
               {#if isLoginMode}Login{:else}Sign Up{/if}
             </h4>
+            <div class="hr-div" />
             <div class="wide">
               <fieldset>
                 <LabeledField name="email" label="Email" type="text" />
@@ -146,12 +155,13 @@
                 buttonName={isLoginMode ? 'Sign In' : 'Sign up'}
                 disabled={!$isModified || !$isValid || loading}
               />
-              {#if isLoginMode}
-                <a href="/member_logins/password_reset" class="mt-6 text-primary"
-                  >Forgot Password?</a
-                >
-              {/if}
             </div>
+            {#if isLoginMode}
+              <button
+                class="text-primary text-cebnter mb-10 w-full"
+                on:click={() => forgotPassword()}>Forgot Password?</button
+              >
+            {/if}
           </Form>
         </div>
       </div>

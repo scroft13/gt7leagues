@@ -8,7 +8,7 @@
 
   $: if (openSupportModal) {
     window.open(
-      'mailto:admin@gt7leagues.com?subject="GT7 Leagues Error"&body=' +
+      'mailto:admin@sdotlabs.com?subject="GT7 Leagues Error"&body=' +
         'Status: ' +
         $page.status +
         ' Error: ' +
