@@ -152,11 +152,38 @@ export default {
         .contains('memberIds', [email]);
       return leagues;
     },
-    async join(shortenedName: string) {
+    async join(shortenedName: string, username: string) {
+      console.log(shortenedName);
+      let memberIds: string[] = [];
+      await supabase
+        .from('leagues')
+        .select('*')
+        .eq('shortenedName', shortenedName)
+        .then(
+          (data) => {
+            const mightBeSomething = data.data?.map((league) => {
+              if (league.memberIds as string[]) {
+                return league.memberIds;
+              } else return [];
+            });
+            if (mightBeSomething) {
+              memberIds = mightBeSomething;
+            }
+            return memberIds;
+          },
+          (error) => {
+            return error;
+          },
+        );
+
+      console.log(memberIds);
+      memberIds?.push(username);
+      console.log(memberIds);
+
       const { data: leagues } = await supabase
         .from('leagues')
         .update({
-          memberIds: [user_email],
+          memberIds: memberIds,
         })
         .eq('shortenedName', shortenedName);
 

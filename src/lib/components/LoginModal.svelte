@@ -15,6 +15,7 @@
   import yup from './forms/validation';
   import { addToast } from '$lib/stores';
   import db, { supabase } from '$lib/db';
+  import type { User } from '@supabase/supabase-js';
 
   export let open: boolean;
   export let isLoginMode: boolean = true;
@@ -23,6 +24,7 @@
   let loading = false;
 
   const dispatch = createEventDispatcher();
+  let user: User;
   //   let user: User | null = null;
 
   const formSchema = isLoginMode
@@ -61,7 +63,10 @@
                   id: Math.floor(Math.random() * 10000),
                 });
               } else {
-                return close();
+                if (session) {
+                  user = session.user;
+                  return close();
+                }
               }
             });
           loading = false;
@@ -84,7 +89,7 @@
   function close() {
     open = false;
     setTimeout(() => {
-      dispatch('close');
+      dispatch('close', { user: user });
     }, 400);
   }
 

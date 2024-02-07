@@ -40,6 +40,7 @@
     eventInfo: yup.string().required().default(''),
     series: yup.string().default(''),
     track: yup.string().default(''),
+    singleEventTitle: yup.string().default(''),
   });
 
   const formState = createForm<FormData>({
@@ -83,6 +84,7 @@
           eventInfo: formCopy.eventInfo,
           series: formCopy.series,
           track: formCopy.track,
+          singleEventTitle: formCopy.singleEventTitle,
         },
         userId,
       )
@@ -135,6 +137,7 @@
                 eventInfo: formCopy.eventInfo,
                 series: formCopy.series,
                 track: formCopy.track,
+                singleEventTitle: formCopy.singleEventTitle,
               },
               shortenedName,
             )
@@ -154,6 +157,7 @@
   }
 
   $: form.subscribe((form) => {
+    repeatWeekly = form.repeatWeekly;
     formCopy = form;
   });
 </script>
@@ -226,6 +230,21 @@
                     class="short"
                   />
                   <LabeledDateSelector name="endDate" label="End Date" />
+                {:else}
+                  <LabeledField
+                    name="singleEventTitle"
+                    label="Event Title"
+                    type="text"
+                    placeholder="ex. Monday Night Madness"
+                    class="short"
+                  />
+                  <LabeledField
+                    name="track"
+                    label="Track"
+                    type="text"
+                    placeholder="ex. Dragon Trail"
+                    class="short"
+                  />
                 {/if}
               </fieldset>
               <fieldset>
@@ -236,15 +255,7 @@
                   placeholder="Ex. GR 3"
                   short={true}
                 />
-                {#if !repeatWeekly}
-                  <LabeledField
-                    name="track"
-                    label="Track"
-                    type="text"
-                    placeholder="ex. Dragon Trail"
-                    class="short"
-                  />
-                {/if}
+
                 <!-- <LabeledRadioGroup
                   name="contactMethod"
                   label="Contact Method"

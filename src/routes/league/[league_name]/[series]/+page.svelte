@@ -15,3 +15,4 @@
 
 {data.seriesName}
 {data}
+{seriesInfo}

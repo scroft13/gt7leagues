@@ -7,12 +7,14 @@ export async function load({ params }) {
   const supabaseListener = await supabase.auth.getUser();
   const leagueInfo: League[] | void = await db.leagues.find(params.league_name);
   const user: User | null = supabaseListener.data.user;
+  const username: string = await db.users.currentUsername(user?.id ?? '');
 
   if (params.league_name && leagueInfo && user) {
     return {
       shortenedName: params.league_name,
       user: user,
       leagueInfo: leagueInfo[0],
+      username: username,
     };
   } else {
     return {

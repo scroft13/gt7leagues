@@ -30,7 +30,7 @@
   }
 
   async function joinLeague() {
-    db.leagues.join(shortenedName).then(() => {
+    db.leagues.join(shortenedName, data.username ?? '').then(() => {
       if (leagueInfo)
         addToast({
           type: 'success',
@@ -39,6 +39,12 @@
         });
     });
   }
+
+  async function addMessage() {
+    console.log('add message');
+  }
+
+  $: console.log(leagueInfo);
 </script>
 
 {#if openEventModal}
@@ -83,23 +89,45 @@
         {leagueInfo.leagueInfo}
       </p>
     {/if}
-    {#if leagueInfo.memberIds.find((x) => x === user?.email)}
-      Your are a member of this league
+    {#if leagueInfo.members.find((x) => x.username === data.username)}
+      <p class="secondary-text italic">Your are a member of this league</p>
     {/if}
     <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Series</p>
-    {#each leagueInfo.seriesEvents as series}
-      <a href="/league/{shortenedName}/{series.name}">{series.name}</a>
-    {/each}
+    {#if leagueInfo.seriesEvents.length > 0}
+      {#each leagueInfo.seriesEvents as series}
+        <a href="/league/{shortenedName}/{series.name}">{series.name}</a>
+      {/each}
+    {:else}
+      <p class="secondary-text">You currently don't have any series scheduled</p>
+    {/if}
     <p class="text-lg font-semibold main-text text-center lg:text-left w-full">Single Events</p>
-    {#each leagueInfo.singleEvents as event}
-      {event.title}
-    {/each}
+    {#if leagueInfo.singleEvents.length > 0}
+      {#each leagueInfo.singleEvents as event}
+        {event.title}
+      {/each}
+    {:else}
+      <p class="secondary-text">You currently don't have any single event scheduled</p>
+    {/if}
 
     {#if user.id === leagueInfo.ownerId}
       <button on:click={() => launchAddEvent()} class="btn-primary">Add Event</button>
-    {:else if !leagueInfo.memberIds.find((x) => x === user?.email)}
+    {:else if !leagueInfo.members.find((x) => x.username === data.username)}
       <button on:click={() => joinLeague()} class="btn-primary">Join League</button>
     {/if}
+    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Messages</p>
+    {#each leagueInfo.posts as post}
+      <p>{post.username}, {post.message}</p>
+    {/each}
+    {#if user.id === leagueInfo.ownerId}
+      <button on:click={() => addMessage()} class="btn-primary">Add Message</button>
+    {:else if leagueInfo.members.find((x) => x.username === data.username)}
+      <button on:click={() => addMessage()} class="btn-primary">Add Message</button>
+    {/if}
+
+    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">Members</p>
+    {#each leagueInfo.members as member}
+      <a href="/user/{member.username}">{member.username}, {member.role}</a>
+    {/each}
   </div>
 {:else}
   <div class="w-full">

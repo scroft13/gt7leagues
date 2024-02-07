@@ -14,11 +14,13 @@
   import LabeledRadioGroup from './forms/labeledComponents/LabeledRadioGroup.svelte';
   import { contactOptions } from '$lib/consts';
   import LabeledTextarea from './forms/labeledComponents/LabeledTextarea.svelte';
-  import db, { supabase } from '$lib/db';
+  import db from '$lib/db';
   import { addToast } from '$lib/stores';
   import { goto } from '$app/navigation';
+  import type { User } from '@supabase/supabase-js';
 
   export let open = false;
+  export let user: User;
   const dispatch = createEventDispatcher();
   const formSchema = yup.object().shape({
     email: yup
@@ -37,19 +39,18 @@
         then: (schema) => schema.required(),
       })
       .default(''),
-
     hasMembers: yup.boolean().default(false),
-
     leagueName: yup.string().required().default(''),
-    leagueAcronym: yup.string().required().default(''),
-    contactMethod: yup.string().required().default('Discord'),
+    leagueAcronym: yup.string().xDigitsOnly(3).required().default(''),
+    contactMethod: yup.string().required().default('GT7 Leagues'),
     leagueInfo: yup.string().default(''),
     mainLocation: yup.string().default(''),
   });
   let ownerID: string;
+  let username: string;
   onMount(async () => {
-    const user = await supabase.auth.getUser();
-    user.data.user ? (ownerID = user.data.user?.id) : null;
+    ownerID = user.id;
+    username = await db.users.currentUsername(ownerID);
   });
 
   const formState = createForm<FormData>({
@@ -59,7 +60,7 @@
         const shortenedName = formData.leagueName.replace(/\s/g, '');
         db.leagues
           .create({
-            contactMethod: formData.contactMethod as 'Email' | 'Discord',
+            contactMethod: formData.contactMethod as 'Email' | 'Discord' | 'GT7 Leagues',
             leagueName: formData.leagueName,
             leagueAcronym: formData.leagueAcronym,
             leagueInfo: formData.leagueInfo,
@@ -69,10 +70,11 @@
             hasMembers: formData.hasMembers,
             ownerId: ownerID,
             mainLocation: formData.mainLocation,
-            memberIds: [],
+            members: [{ username: username, role: 'Manager' }],
             shortenedName: shortenedName,
             seriesEvents: [],
             singleEvents: [],
+            posts: [],
           })
           .then(() => {
             addToast({
@@ -105,9 +107,20 @@
   }
 
   let contactEmail: boolean;
+  let contactGT7: boolean;
 
   $: form.subscribe((x) => {
-    x.contactMethod === 'Email' ? (contactEmail = true) : (contactEmail = false);
+    if (x.contactMethod === 'Email') {
+      contactEmail = true;
+      contactGT7 = false;
+    } else if (x.contactMethod === 'GT7 Leagues') {
+      contactEmail = false;
+      contactGT7 = true;
+      x.hasMembers = true;
+    } else {
+      contactGT7 = false;
+      contactEmail = false;
+    }
   });
 </script>
 
@@ -156,19 +169,20 @@
                   name="leagueName"
                   label="League Name"
                   type="text"
-                  placeholder="ex. Triple Six Racing"
+                  placeholder="ex. Go Fast Racing"
                 />
                 <LabeledField
                   name="contactName"
                   label="Contact Name"
                   type="text"
-                  placeholder="ex. Shaun Croft"
+                  placeholder="ex. John Buck"
                 />
                 <LabeledField
                   name="leagueAcronym"
                   label="League Acronym"
                   type="text"
-                  placeholder="ex. T6R - Three Digits Max"
+                  placeholder="ex. GFR - Three Digits"
+                  maxLength={3}
                 />
                 <LabeledRadioGroup
                   name="contactMethod"
@@ -185,7 +199,7 @@
                     icon="email"
                     placeholder="Ex. yourname@domain.com"
                   />
-                {:else}
+                {:else if !contactGT7}
                   <LabeledField
                     name="discordServer"
                     label="Discord server"
@@ -199,11 +213,16 @@
                 <LabeledTextarea name="leagueInfo" label="League Info" />
                 <LabeledField
                   name="mainLocation"
-                  label="Main Timezone Location"
+                  label="Main Location"
                   type="text"
                   placeholder="ex. East Coast, USA"
                 />
-                <LabeledField name="hasMembers" label="Has Members" type="checkbox" />
+                <LabeledField
+                  name="hasMembers"
+                  label="Has Members"
+                  type="checkbox"
+                  disabled={contactGT7}
+                />
               </fieldset>
             </div>
             <div class="wide footer">

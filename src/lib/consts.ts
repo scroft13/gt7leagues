@@ -1,5 +1,5 @@
 export const vehicleClasses = ['Gr. 1', 'Gr. 2', 'Gr. 3', 'Gr. 4', 'Gr. B', 'SPEC', 'Other'];
-export const contactOptions = ['Discord', 'Email'];
+export const contactOptions = ['GT7 Leagues', 'Discord', 'Email'];
 
 export const apiConnectorDictionary = {
   UsStates: [

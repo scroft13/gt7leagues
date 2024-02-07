@@ -26,7 +26,7 @@
   let ec: Calendar;
   let events: CalendarEvents[] = [];
   let isPopupVisible = false;
-  let user: User | null = null;
+  let user: User;
   let popupInfo: { type: string; email: string; discord: string; class: string; info: string };
   let clientWidth: number;
   let view: string = 'timeGridWeek';
@@ -68,8 +68,10 @@
     const {
       data: { subscription: authListener },
     } = supabase.auth.onAuthStateChange((_, session) => {
-      const currentUser = session?.user;
-      user = currentUser ?? null;
+      if (session) {
+        const currentUser = session?.user;
+        user = currentUser;
+      }
     });
 
     supabase
@@ -127,7 +129,7 @@
       };
     }
     if (user) {
-      ownedLeagues = (await db.leagues.findOwned(user.id ?? '')) ?? [];
+      ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
       joinedLeagues = (await db.leagues.findJoined(user.email ?? '')) ?? [];
     }
     loading = false;
@@ -141,7 +143,7 @@
     await db.publicEventsList.all().then((eventList) => {
       if (eventList) {
         eventList.forEach((publicEvent: ServerEvent) => {
-          const formattedDateString = publicEvent.start_date.toLocaleString('en-US', {
+          const formattedDateString = publicEvent.start_date?.toLocaleString('en-US', {
               timeZone: timezone,
             }),
             endDateTime = new Date(publicEvent.start_date);
@@ -355,8 +357,12 @@
   <LoginModal
     open={showLoginModal}
     {isLoginMode}
-    on:close={() => {
+    on:close={async (data) => {
       showLoginModal = false;
+      console.log(data.detail.user);
+      user = data.detail.user;
+      ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
+      joinedLeagues = (await db.leagues.findJoined(user.email ?? '')) ?? [];
       checkUsernameOnList();
     }}
     on:forgotPassword={() => {
@@ -366,7 +372,11 @@
   />
 {/if}
 {#if showLeagueAddModal}
-  <CreateLeagueModal open={showLeagueAddModal} on:close={() => (showLeagueAddModal = false)} />
+  <CreateLeagueModal
+    open={showLeagueAddModal}
+    on:close={() => (showLeagueAddModal = false)}
+    {user}
+  />
 {/if}
 {#if showForgotPassword}
   <ForgotPassword open={showForgotPassword} on:close={() => (showForgotPassword = false)} />
