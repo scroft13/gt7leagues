@@ -98,9 +98,10 @@ export type League = {
   ownerId: string;
   mainLocation: string;
   members: { username: string; role: 'Manager' | 'Racer' }[];
-  shortenedName: string;
+  leagueLink: string;
   seriesEvents: LeagueSeries[];
   posts: Post[];
+  id?: string;
 };
 
 export type LeagueSeries = {
@@ -108,6 +109,21 @@ export type LeagueSeries = {
   members: string[];
   eventDetails: LeagueEvent;
 };
+
+export interface Message {
+  body: string;
+  createdAt: Date;
+  id: number;
+  sender: string;
+  viewed: boolean;
+}
+
+export interface SentMessage {
+  body: string;
+  createdAt: Date;
+  id: number;
+  receiver: string;
+}
 
 export async function getJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {

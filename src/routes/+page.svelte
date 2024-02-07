@@ -394,7 +394,7 @@
 
 <div id="main-div" bind:clientWidth>
   <div class="flex gap-4 flex-col ">
-    <p class="text-primary text-4xl text-center">Welcome to GT7 Leagues</p>
+    <p class="text-4xl text-center">Welcome to GT7 Leagues</p>
     {#if loading}
       <div class="w-full">
         <div class="h-20 my-2 mx-4">
@@ -417,13 +417,13 @@
           <div class="flex flex-col gap-2">
             <p class="text-primary text-2xl">Managed Leagues</p>
             {#each ownedLeagues as league}
-              <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
+              <a href={'/league/' + league.leagueLink}> {league.leagueName}</a>
             {/each}
           </div>
           <div class="flex flex-col gap-2">
             <p class="text-primary text-2xl mt-2">Joined Leagues</p>
             {#each joinedLeagues as league}
-              <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
+              <a href={'/league/' + league.leagueLink}> {league.leagueName}</a>
             {/each}
           </div>
           <div class="flex-row gap-12 flex-grow w-full justify-center flex mt-4">

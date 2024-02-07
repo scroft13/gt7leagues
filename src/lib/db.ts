@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { writable } from 'svelte/store';
-import type { LeagueEvent, League, ServerEvent, LeagueSeries } from './shared';
+import type { LeagueEvent, League, ServerEvent, LeagueSeries, Post } from './shared';
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -131,11 +131,11 @@ export default {
         ? await supabase.from('leagues').insert(league).eq('ownerId', league.ownerId)
         : null;
     },
-    async find(shortenedName: string) {
+    async find(leagueLink: string) {
       const { data: leagues, error } = await supabase
         .from('leagues')
         .select('*')
-        .eq('shortenedName', shortenedName);
+        .eq('leagueLink', leagueLink);
       if (!error) {
         if (leagues.length != 0) return leagues;
       }
@@ -152,62 +152,73 @@ export default {
         .contains('memberIds', [email]);
       return leagues;
     },
-    async join(shortenedName: string, username: string) {
-      console.log(shortenedName);
-      let memberIds: string[] = [];
+    async join(leagueLink: string, username: string, role: 'Manager' | 'Racer') {
+      let members: { username: string; role: 'Manager' | 'Racer' }[] = [];
       await supabase
         .from('leagues')
         .select('*')
-        .eq('shortenedName', shortenedName)
+        .eq('leagueLink', leagueLink)
+        .single()
         .then(
           (data) => {
-            const mightBeSomething = data.data?.map((league) => {
-              if (league.memberIds as string[]) {
-                return league.memberIds;
-              } else return [];
-            });
-            if (mightBeSomething) {
-              memberIds = mightBeSomething;
-            }
-            return memberIds;
+            members = data.data.members;
           },
           (error) => {
             return error;
           },
         );
-
-      console.log(memberIds);
-      memberIds?.push(username);
-      console.log(memberIds);
-
+      members?.push({ username: username, role: role });
       const { data: leagues } = await supabase
         .from('leagues')
         .update({
-          memberIds: memberIds,
+          members: members,
         })
-        .eq('shortenedName', shortenedName);
-
+        .eq('leagueLink', leagueLink);
       return leagues;
     },
-    async addSingleEvent(event: LeagueEvent, shortenedName: string) {
+    async addSingleEvent(event: LeagueEvent, leagueLink: string) {
       const data = await supabase
         .from('leagues')
         .update({
           singleEvents: [event],
         })
-        .eq('shortenedName', shortenedName);
+        .eq('leagueLink', leagueLink);
 
       return data;
     },
-    async addSeries(event: LeagueSeries, shortenedName: string) {
+    async addSeries(event: LeagueSeries, leagueLink: string) {
       const data = await supabase
         .from('leagues')
         .update({
           seriesEvents: [event],
         })
-        .eq('shortenedName', shortenedName);
+        .eq('leagueLink', leagueLink);
 
       return data;
+    },
+    async addPost(leagueId: string, post: Post) {
+      let posts: Post[] = [];
+      await supabase
+        .from('leagues')
+        .select('*')
+        .eq('id', leagueId)
+        .single()
+        .then(
+          (data) => {
+            posts = data.data?.posts;
+          },
+          (error) => {
+            return error;
+          },
+        );
+      posts.push(post);
+      const { data: leagues } = await supabase
+        .from('leagues')
+        .update({
+          posts: posts,
+        })
+        .eq('id', leagueId);
+      return leagues;
     },
   },
 };

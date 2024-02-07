@@ -11,7 +11,7 @@ export async function load({ params }) {
 
   if (params.league_name && leagueInfo && user) {
     return {
-      shortenedName: params.league_name,
+      leagueLink: params.league_name,
       user: user,
       leagueInfo: leagueInfo[0],
       username: username,

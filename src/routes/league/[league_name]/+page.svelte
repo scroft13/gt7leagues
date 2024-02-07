@@ -9,20 +9,30 @@
   import ChevronDown from '@rgossiaux/svelte-heroicons/solid/ChevronDown';
   import ChevronUp from '@rgossiaux/svelte-heroicons/solid/ChevronUp';
   import { goto } from '$app/navigation';
+  import NewMessageModal from '$lib/components/NewMessageModal.svelte';
+  import { marked } from 'marked';
 
   export let data: PageData;
   let openEventModal = false;
-  let shortenedName = data.shortenedName ?? '';
+  let openMessageModal = false;
+  let leagueLink = data.leagueLink ?? '';
   let leagueInfo: League | null = data.leagueInfo ?? null;
   let user: User | null = data.user ?? null;
   let showMoreBlurb = false;
   let blurbTooSmall: boolean;
   let userId: string = data.user?.id ?? '';
+  let leagueRole: 'Manager' | 'Racer';
 
   onMount(async () => {
     if (data.redirect) goto('/league/notfound/noLeague');
-    if (leagueInfo)
+    if (leagueInfo && data.user) {
       leagueInfo.leagueInfo.length > 500 ? (blurbTooSmall = false) : (blurbTooSmall = true);
+      if (data.user.id === leagueInfo.ownerId) {
+        leagueRole = 'Manager';
+      } else if (leagueInfo.members.find((x) => x.username === data.username)) {
+        leagueRole = 'Racer';
+      }
+    }
   });
 
   async function launchAddEvent() {
@@ -30,7 +40,7 @@
   }
 
   async function joinLeague() {
-    db.leagues.join(shortenedName, data.username ?? '').then(() => {
+    db.leagues.join(leagueLink, data.username ?? '', 'Racer').then(() => {
       if (leagueInfo)
         addToast({
           type: 'success',
@@ -41,7 +51,7 @@
   }
 
   async function addMessage() {
-    console.log('add message');
+    openMessageModal = true;
   }
 
   $: console.log(leagueInfo);
@@ -54,8 +64,21 @@
       openEventModal = false;
     }}
     leagueName={leagueInfo?.leagueAcronym ?? ''}
-    {shortenedName}
+    {leagueLink}
     {userId}
+  />
+{/if}
+{#if openMessageModal && leagueInfo && user && data.username}
+  <NewMessageModal
+    open={openMessageModal}
+    on:close={() => {
+      openMessageModal = false;
+    }}
+    type="League"
+    {leagueInfo}
+    {user}
+    username={data.username}
+    {leagueRole}
   />
 {/if}
 {#if leagueInfo && user}
@@ -95,10 +118,10 @@
     <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Series</p>
     {#if leagueInfo.seriesEvents.length > 0}
       {#each leagueInfo.seriesEvents as series}
-        <a href="/league/{shortenedName}/{series.name}">{series.name}</a>
+        <a href="/league/{leagueLink}/{series.name}">{series.name}</a>
       {/each}
     {:else}
-      <p class="secondary-text">You currently don't have any series scheduled</p>
+      <p class="secondary-text">There are currently not any series scheduled</p>
     {/if}
     <p class="text-lg font-semibold main-text text-center lg:text-left w-full">Single Events</p>
     {#if leagueInfo.singleEvents.length > 0}
@@ -106,7 +129,7 @@
         {event.title}
       {/each}
     {:else}
-      <p class="secondary-text">You currently don't have any single event scheduled</p>
+      <p class="secondary-text">There are currently not any single events scheduled</p>
     {/if}
 
     {#if user.id === leagueInfo.ownerId}
@@ -116,7 +139,7 @@
     {/if}
     <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Messages</p>
     {#each leagueInfo.posts as post}
-      <p>{post.username}, {post.message}</p>
+      <p>{post.username}, {@html marked(JSON.parse(post.message))}</p>
     {/each}
     {#if user.id === leagueInfo.ownerId}
       <button on:click={() => addMessage()} class="btn-primary">Add Message</button>
@@ -125,9 +148,16 @@
     {/if}
 
     <p class="text-lg font-semibold main-text text-center lg:text-left w-full">Members</p>
-    {#each leagueInfo.members as member}
-      <a href="/user/{member.username}">{member.username}, {member.role}</a>
-    {/each}
+    <div class="flex gap-12 w-full flex-row">
+      {#each leagueInfo.members as member}
+        <a href="/user/{member.username}" class="grid grid-cols-2 gap-4">
+          <p>{member.username}</p>
+          <p class={member.role === 'Manager' ? 'text-red-500' : ''}>
+            {member.role}
+          </p>
+        </a>
+      {/each}
+    </div>
   </div>
 {:else}
   <div class="w-full">

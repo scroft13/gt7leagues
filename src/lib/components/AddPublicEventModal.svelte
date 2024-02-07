@@ -22,7 +22,7 @@
 
   export let open = false;
   export let leagueName: string;
-  export let shortenedName: string;
+  export let leagueLink: string;
   export let userId: string;
   let formCopy: FormData;
   const dispatch = createEventDispatcher();
@@ -114,7 +114,7 @@
                   track: 'Revolving',
                 },
               },
-              shortenedName,
+              leagueLink,
             )
             .catch(() => (errorFlag = true));
         } else {
@@ -139,7 +139,7 @@
                 track: formCopy.track,
                 singleEventTitle: formCopy.singleEventTitle,
               },
-              shortenedName,
+              leagueLink,
             )
             .catch(() => (errorFlag = true));
         }

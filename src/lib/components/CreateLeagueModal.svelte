@@ -57,7 +57,7 @@
       initialValues: formSchema.cast({}) as FormData,
       validationSchema: formSchema,
       onSubmit: async (formData) => {
-        const shortenedName = formData.leagueName.replace(/\s/g, '');
+        const leagueLink = formData.leagueName.replace(/\s/g, '');
         db.leagues
           .create({
             contactMethod: formData.contactMethod as 'Email' | 'Discord' | 'GT7 Leagues',
@@ -71,7 +71,7 @@
             ownerId: ownerID,
             mainLocation: formData.mainLocation,
             members: [{ username: username, role: 'Manager' }],
-            shortenedName: shortenedName,
+            leagueLink: leagueLink,
             seriesEvents: [],
             singleEvents: [],
             posts: [],
@@ -82,7 +82,7 @@
               message: 'Your League Has Been Created!',
               id: Math.floor(Math.random() * 10000),
             });
-            goto('/league/' + shortenedName);
+            goto('/league/' + leagueLink);
           })
           .catch((error: Error) => {
             addToast({
