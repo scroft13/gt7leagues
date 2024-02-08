@@ -56,6 +56,7 @@ export type LeagueEvent = {
   track: string;
   leagueName: string;
   singleEventTitle?: string;
+  leagueLink: string;
 };
 
 export type ServerEvent = {
@@ -75,6 +76,8 @@ export type ServerEvent = {
   series: string;
   track: string;
   leagueName: string;
+  singleEventName?: string;
+  leagueLink: string;
 };
 
 export type Post = {

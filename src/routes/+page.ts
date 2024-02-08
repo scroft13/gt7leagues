@@ -1,5 +1,4 @@
 import db, { supabase } from '$lib/db.js';
-import type { UserInfo } from '$lib/shared';
 
 /** @type {import('./$types').PageLoad} */
 export async function load() {

@@ -116,6 +116,8 @@ export default {
         series: publicEvent.series,
         track: publicEvent.track,
         leagueName: publicEvent.leagueName,
+        singleEventName: publicEvent.singleEventTitle,
+        leagueLink: publicEvent.leagueLink,
       };
       const data = await supabase.from('publicEvents').insert([publicDbEvent]);
       return data;
@@ -145,12 +147,19 @@ export default {
 
       return leagues;
     },
-    async findJoined(email: string) {
-      const { data: leagues } = await supabase
-        .from('leagues')
-        .select('*')
-        .contains('memberIds', [email]);
-      return leagues;
+    async findJoined(username: string, userId: string) {
+      const { data: leagues } = await supabase.from('leagues').select('*');
+      const leaguesJoined: League[] = [];
+      leagues?.forEach((league: League) => {
+        console.log(league.members);
+        league.members.forEach((member) => {
+          if (member.username === username && league.ownerId != userId) {
+            leaguesJoined.push(league);
+          }
+        });
+      });
+
+      return leaguesJoined;
     },
     async join(leagueLink: string, username: string, role: 'Manager' | 'Racer') {
       let members: { username: string; role: 'Manager' | 'Racer' }[] = [];

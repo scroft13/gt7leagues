@@ -35,7 +35,6 @@
     endDate: yup.string().default(''),
     startTime: yup.string().required().default(''),
     duration: yup.number().required().default(0),
-    contactMethod: yup.string().required().default('Discord'),
     vehicleClass: yup.string().required().default(''),
     eventInfo: yup.string().required().default(''),
     series: yup.string().default(''),
@@ -255,31 +254,6 @@
                   placeholder="Ex. GR 3"
                   short={true}
                 />
-
-                <!-- <LabeledRadioGroup
-                  name="contactMethod"
-                  label="Contact Method"
-                  options={contactOptions}
-                  labelClass=""
-                  flexColumnsAlways={true}
-                />
-                {#if contactEmail}
-                  <LabeledField
-                    name="email"
-                    label="Email"
-                    type="text"
-                    icon="email"
-                    placeholder="Ex. yourname@domain.com"
-                  />
-                {:else} -->
-                <LabeledField
-                  name="discordServer"
-                  label="Discord server"
-                  type="text"
-                  icon=""
-                  placeholder="Ex. https://discord.gg/sCCJ7DoN"
-                />
-
                 <LabeledTextarea name="eventInfo" label="Event Info" />
               </fieldset>
             </div>

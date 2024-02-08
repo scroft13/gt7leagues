@@ -11,6 +11,7 @@
   import { goto } from '$app/navigation';
   import NewMessageModal from '$lib/components/NewMessageModal.svelte';
   import { marked } from 'marked';
+  import { displayDateNumerical, displayTime } from '$lib/formatters';
 
   export let data: PageData;
   let openEventModal = false;
@@ -53,8 +54,6 @@
   async function addMessage() {
     openMessageModal = true;
   }
-
-  $: console.log(leagueInfo);
 </script>
 
 {#if openEventModal}
@@ -125,9 +124,27 @@
     {/if}
     <p class="text-lg font-semibold main-text text-center lg:text-left w-full">Single Events</p>
     {#if leagueInfo.singleEvents.length > 0}
-      {#each leagueInfo.singleEvents as event}
-        {event.title}
-      {/each}
+      <div
+        class="flex w-full gap-2 justify-evenly flex-col lg:flex-row border lg:border-0 p-2 lg:p-0 rounded"
+      >
+        {#each leagueInfo.singleEvents as event}
+          <p>
+            {event.singleEventTitle}
+          </p>
+          <p>
+            {displayDateNumerical(event.startDate)}
+          </p>
+          <p>
+            {displayTime(event.startDate)}
+          </p>
+          <p>
+            {event.vehicleClass}
+          </p>
+          <p>
+            {event.eventInfo}
+          </p>
+        {/each}
+      </div>
     {:else}
       <p class="secondary-text">There are currently not any single events scheduled</p>
     {/if}
@@ -139,7 +156,22 @@
     {/if}
     <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Messages</p>
     {#each leagueInfo.posts as post}
-      <p>{post.username}, {@html marked(JSON.parse(post.message))}</p>
+      <div class="text-left w-full border p-2 rounded flex gap-6">
+        <div class="font-bold flex flex-col">
+          <p>
+            {post.username}
+          </p>
+          <p>
+            {displayDateNumerical(post.date)}
+          </p>
+          <p>
+            {displayTime(post.date)}
+          </p>
+        </div>
+        <div class="font-normal  ml-2 inline-table">
+          {@html marked(JSON.parse(post.message))}
+        </div>
+      </div>
     {/each}
     {#if user.id === leagueInfo.ownerId}
       <button on:click={() => addMessage()} class="btn-primary">Add Message</button>
@@ -151,7 +183,7 @@
     <div class="flex gap-12 w-full flex-row">
       {#each leagueInfo.members as member}
         <a href="/user/{member.username}" class="grid grid-cols-2 gap-4">
-          <p>{member.username}</p>
+          <p class="text-bold">{member.username}</p>
           <p class={member.role === 'Manager' ? 'text-red-500' : ''}>
             {member.role}
           </p>
