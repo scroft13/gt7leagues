@@ -1,8 +1,9 @@
 <script lang="ts">
   import Fa from 'svelte-fa';
   import { supabase } from '$lib/db';
-  import { faPlusCircle, faUser } from '@fortawesome/free-solid-svg-icons';
+  import { faPaintbrush, faUser } from '@fortawesome/free-solid-svg-icons';
   import { onMount } from 'svelte';
+  import ImageUploadModal from '$lib/components/ImageUploadModal.svelte';
 
   export let data;
   console.log(data);
@@ -18,7 +19,6 @@
         console.log(image.error);
       } else {
         imageData = image.data;
-        console.log(image.data);
       }
     }
   });
@@ -26,8 +26,12 @@
   function createObjectURL(blob: Blob) {
     return URL.createObjectURL(new Blob([blob]));
   }
+  let showImageUpload = false;
 </script>
 
+{#if showImageUpload}
+  <ImageUploadModal open={showImageUpload} userId={data.user?.data.user?.id ?? ''} />
+{/if}
 <div class="mx-4 lg:mx-16 xl:mx-40">
   <div class="flex justify-center items-center gap-x-8">
     <div class="relative">
@@ -40,7 +44,9 @@
       {/if}
       <div class="absolute">
         {#if data.isCurrentUser}
-          <Fa icon={faPlusCircle} />
+          <button on:click={() => (showImageUpload = true)}>
+            <Fa icon={faPaintbrush} primaryColor={'gray'} />
+          </button>
         {/if}
       </div>
     </div>

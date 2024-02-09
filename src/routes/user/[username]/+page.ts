@@ -16,6 +16,7 @@ export async function load({ params }) {
     }
 
     return {
+      user,
       userImageUrl: data?.imageUrl,
       username: params.username,
       isCurrentUser,
