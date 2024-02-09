@@ -326,7 +326,7 @@
     @apply text-gray-800 dark:text-dark-mode-secondary-text  text-xl lg:text-2xl font-light;
   }
   .secondary-text {
-    @apply text-gray-400 dark:text-dark-mode-secondary-text;
+    @apply text-gray-500 dark:text-dark-mode-secondary-text;
   }
   .secondary-500-text {
     @apply text-gray-500 dark:text-dark-mode-secondary-text;

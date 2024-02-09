@@ -8,12 +8,13 @@
   } from '@rgossiaux/svelte-heroicons/outline';
   export let name: string;
   export let type: 'text' | 'number' | 'checkbox';
+  export let maxLength: number;
   export let placeholder: string | undefined = undefined;
   export let iconType: 'person' | 'email' | 'globe' | 'phone' | undefined;
   const { form, errors, handleChange, validateField } = getFormContext();
 
   export let dependsOn: string[] | undefined = undefined;
-  let lastDependsOnValue: Record<string, string>;
+  let lastDependsOnValue: Pick<Record<string, unknown>, string>;
   $: if (dependsOn && pick($form ?? {}, ...dependsOn) !== lastDependsOnValue) {
     validateField(name);
     lastDependsOnValue = pick($form ?? {}, ...dependsOn);
@@ -33,6 +34,7 @@
     class:invalid={$errors[name]}
     {...$$props}
     checked={$form[name]}
+    maxlength={maxLength}
   />
   {#if iconType}
     <p class="absolute right-3 top-[22px] secondary-text">

@@ -17,6 +17,7 @@
   import ForgotPassword from '$lib/components/ForgotPassword.svelte';
   import ChevronUp from '@rgossiaux/svelte-heroicons/outline/ChevronUp';
   import ChevronDown from '@rgossiaux/svelte-heroicons/outline/ChevronDown';
+  import { goto } from '$app/navigation';
 
   const plugins = [DayGrid, TimeGrid];
   export let data: PageData;
@@ -25,9 +26,7 @@
 
   let ec: Calendar;
   let events: CalendarEvents[] = [];
-  let isPopupVisible = false;
-  let user: User | null = null;
-  let popupInfo: { type: string; email: string; discord: string; class: string; info: string };
+  let user: User;
   let clientWidth: number;
   let view: string = 'timeGridWeek';
 
@@ -41,13 +40,7 @@
     headerToolbar: headerToolbar,
     allDaySlot: false,
     eventClick: (e: any) => {
-      showPopup(e);
-    },
-    eventMouseEnter: (e: CustomEvent) => {
-      showPopup(e);
-    },
-    eventMouseLeave: () => {
-      // hidePopup();
+      linkToLeague(e);
     },
     events: events,
   };
@@ -63,13 +56,13 @@
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   onMount(async () => {
-    // Listen to inserts
     data.username === null ? (setUsername = true) : (setUsername = false);
     const {
       data: { subscription: authListener },
     } = supabase.auth.onAuthStateChange((_, session) => {
-      const currentUser = session?.user;
-      user = currentUser ?? null;
+      if (session) {
+        user = session.user;
+      }
     });
 
     supabase
@@ -94,13 +87,7 @@
         headerToolbar: headerToolbar,
         allDaySlot: false,
         eventClick: (e: any) => {
-          showPopup(e);
-        },
-        eventMouseEnter: (e: CustomEvent) => {
-          showPopup(e);
-        },
-        eventMouseLeave: () => {
-          // hidePopup();
+          linkToLeague(e);
         },
       };
     } else {
@@ -116,19 +103,13 @@
         headerToolbar: headerToolbar,
         allDaySlot: false,
         eventClick: (e: any) => {
-          showPopup(e);
-        },
-        eventMouseEnter: (e: CustomEvent) => {
-          showPopup(e);
-        },
-        eventMouseLeave: () => {
-          // hidePopup();
+          linkToLeague(e);
         },
       };
     }
     if (user) {
-      ownedLeagues = (await db.leagues.findOwned(user.id ?? '')) ?? [];
-      joinedLeagues = (await db.leagues.findJoined(user.email ?? '')) ?? [];
+      ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
+      joinedLeagues = (await db.leagues.findJoined(data.username ?? '', user.id)) ?? [];
     }
     loading = false;
     return () => {
@@ -140,24 +121,23 @@
     let tempEventList: CalendarEvents[] = [];
     await db.publicEventsList.all().then((eventList) => {
       if (eventList) {
+        console.log(eventList);
         eventList.forEach((publicEvent: ServerEvent) => {
-          const formattedDateString = publicEvent.start_date.toLocaleString('en-US', {
+          const formattedDateString = publicEvent.start_date?.toLocaleString('en-US', {
               timeZone: timezone,
             }),
             endDateTime = new Date(publicEvent.start_date);
           endDateTime.setHours(endDateTime.getHours() + publicEvent.duration_hrs);
           const modifiedDateString = endDateTime.toString();
           if (!publicEvent.is_series) {
+            console.log(publicEvent);
             tempEventList.push({
               id: publicEvent.id,
               start: new Date(formattedDateString),
               end: new Date(modifiedDateString),
-              title: publicEvent.title,
+              title: publicEvent.singleEventName ?? '' + publicEvent.leagueName,
               extendedProps: {
-                email: publicEvent.email,
-                discord: publicEvent.discord_server,
-                class: publicEvent.vehicle_class,
-                info: publicEvent.event_info,
+                leagueLink: publicEvent.leagueLink,
               },
               backgroundColor: generateRandomColor(),
             });
@@ -179,12 +159,9 @@
                   id: publicEvent.id + i,
                   start: new Date(formattedDateString),
                   end: new Date(modifiedDateString),
-                  title: publicEvent.title,
+                  title: publicEvent.series + publicEvent.leagueName,
                   extendedProps: {
-                    email: publicEvent.email,
-                    discord: publicEvent.discord_server,
-                    class: publicEvent.vehicle_class,
-                    info: publicEvent.event_info,
+                    leagueLink: publicEvent.leagueLink,
                   },
                   backgroundColor: generateRandomColor(),
                 };
@@ -212,13 +189,9 @@
         id: payload.new.id,
         start: new Date(formattedDateString),
         end: new Date(modifiedDateString),
-        title: payload.new.title,
+        title: payload.new.singleEventName ?? '' + payload.new.leagueName,
         extendedProps: {
-          type: payload.new.contact_type,
-          email: payload.new.email,
-          discord: payload.new.discord_server,
-          class: payload.new.vehicle_class,
-          info: payload.new.event_info,
+          leagueLink: payload.leagueLink,
         },
         backgroundColor: generateRandomColor(),
       });
@@ -240,7 +213,7 @@
             id: payload.new.id + i,
             start: new Date(formattedDateString),
             end: new Date(modifiedDateString),
-            title: payload.new.title,
+            title: payload.new.series + payload.new.leagueName,
             extendedProps: {
               type: payload.new.contact_type,
               email: payload.new.email,
@@ -304,26 +277,10 @@
     return `rgba(${adjustedRed}, ${adjustedGreen}, ${adjustedBlue}, .8)`;
   }
 
-  function showPopup(e: CustomEvent) {
-    isPopupVisible = true;
-    // @ts-ignore
-    popupInfo = {
-      // @ts-ignore
-      type: e.event.extendedProps.type,
-      // @ts-ignore
-      email: e.event.extendedProps.email,
-      // @ts-ignore
-      discord: e.event.extendedProps.discord,
-      // @ts-ignore
-      class: e.event.extendedProps.class,
-      // @ts-ignore
-      info: e.event.extendedProps.info,
-    };
+  function linkToLeague(e: any) {
+    console.log(e.event.extendedProps);
+    goto('/league/' + e.event.extendedProps.leagueLink);
   }
-
-  // function hidePopup() {
-  //   isPopupVisible = false;
-  // }
 
   async function logout(): Promise<void> {
     try {
@@ -338,7 +295,7 @@
 
   async function checkUsernameOnList() {
     if (user) {
-      const username = await db.users.currentUsername(user.id);
+      const username = await db.currentUser.currentUsername(user.id);
       if (!username) {
         setUsername = true;
       }
@@ -355,8 +312,12 @@
   <LoginModal
     open={showLoginModal}
     {isLoginMode}
-    on:close={() => {
+    on:close={async (data) => {
       showLoginModal = false;
+      console.log(data.detail.user);
+      user = data.detail.user;
+      ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
+      joinedLeagues = (await db.leagues.findJoined(user.email ?? '', user.id)) ?? [];
       checkUsernameOnList();
     }}
     on:forgotPassword={() => {
@@ -366,7 +327,11 @@
   />
 {/if}
 {#if showLeagueAddModal}
-  <CreateLeagueModal open={showLeagueAddModal} on:close={() => (showLeagueAddModal = false)} />
+  <CreateLeagueModal
+    open={showLeagueAddModal}
+    on:close={() => (showLeagueAddModal = false)}
+    {user}
+  />
 {/if}
 {#if showForgotPassword}
   <ForgotPassword open={showForgotPassword} on:close={() => (showForgotPassword = false)} />
@@ -384,7 +349,7 @@
 
 <div id="main-div" bind:clientWidth>
   <div class="flex gap-4 flex-col ">
-    <p class="text-primary text-4xl text-center">Welcome to GT7 Leagues</p>
+    <p class="text-4xl text-center">Welcome to GT7 Leagues</p>
     {#if loading}
       <div class="w-full">
         <div class="h-20 my-2 mx-4">
@@ -407,13 +372,13 @@
           <div class="flex flex-col gap-2">
             <p class="text-primary text-2xl">Managed Leagues</p>
             {#each ownedLeagues as league}
-              <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
+              <a href={'/league/' + league.leagueLink}> {league.leagueName}</a>
             {/each}
           </div>
           <div class="flex flex-col gap-2">
             <p class="text-primary text-2xl mt-2">Joined Leagues</p>
             {#each joinedLeagues as league}
-              <a href={'/league/' + league.shortenedName}> {league.leagueName}</a>
+              <a href={'/league/' + league.leagueLink}> {league.leagueName}</a>
             {/each}
           </div>
           <div class="flex-row gap-12 flex-grow w-full justify-center flex mt-4">
@@ -477,34 +442,9 @@
           >
         </div>
       {/if}
-      <!-- <div id="ec" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" />
-      <div id="ec2" class="mx-4 max-h-[80vh] overflow-auto w-[90vw]" /> -->
 
       <div class="w-full felx-grow">
         <div class="mt-8 mx-4 relative">
-          {#if isPopupVisible}
-            <div
-              class="z-10 popover-background rounded-lg p-2 shadow-listbox-shadow absolute top-40 w-80 h-[500px]"
-            >
-              <!-- Popup content goes here -->
-              <ul>
-                <li>
-                  Contact Info:
-                  {#if popupInfo.type === 'Discord'}
-                    <a href={popupInfo.discord} target="_blank"> Discord Link</a>
-                  {:else}
-                    <a href={`mailto:${popupInfo.email}`} target="_blank"> Email Link</a>
-                  {/if}
-                </li>
-                <li>
-                  {popupInfo.class}
-                </li>
-                <li>
-                  {popupInfo.info}
-                </li>
-              </ul>
-            </div>
-          {/if}
           <Calendar {plugins} {options} bind:this={ec} />
         </div>
       </div>

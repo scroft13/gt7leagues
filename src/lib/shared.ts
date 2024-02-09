@@ -55,6 +55,8 @@ export type LeagueEvent = {
   series: string;
   track: string;
   leagueName: string;
+  singleEventTitle?: string;
+  leagueLink: string;
 };
 
 export type ServerEvent = {
@@ -74,13 +76,23 @@ export type ServerEvent = {
   series: string;
   track: string;
   leagueName: string;
+  singleEventName?: string;
+  leagueLink: string;
+};
+
+export type Post = {
+  username: string;
+  userId: string;
+  leagueRole: 'Manager' | 'Racer';
+  message: string;
+  date: Date;
 };
 
 export type League = {
   leagueName: string;
   leagueAcronym: string;
   singleEvents: LeagueEvent[];
-  contactMethod: 'Email' | 'Discord';
+  contactMethod: 'Email' | 'Discord' | 'GT7 Leagues';
   leagueInfo: string;
   email?: string;
   discordServer?: string;
@@ -88,9 +100,11 @@ export type League = {
   hasMembers: boolean;
   ownerId: string;
   mainLocation: string;
-  memberIds: string[];
-  shortenedName: string;
+  members: { username: string; role: 'Manager' | 'Racer' }[];
+  leagueLink: string;
   seriesEvents: LeagueSeries[];
+  posts: Post[];
+  id?: string;
 };
 
 export type LeagueSeries = {
@@ -98,6 +112,21 @@ export type LeagueSeries = {
   members: string[];
   eventDetails: LeagueEvent;
 };
+
+export interface Message {
+  body: string;
+  createdAt: Date;
+  id: number;
+  sender: string;
+  viewed: boolean;
+}
+
+export interface SentMessage {
+  body: string;
+  createdAt: Date;
+  id: number;
+  receiver: string;
+}
 
 export async function getJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {

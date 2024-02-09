@@ -22,7 +22,7 @@
 
   export let open = false;
   export let leagueName: string;
-  export let shortenedName: string;
+  export let leagueLink: string;
   export let userId: string;
   let formCopy: FormData;
   const dispatch = createEventDispatcher();
@@ -35,11 +35,11 @@
     endDate: yup.string().default(''),
     startTime: yup.string().required().default(''),
     duration: yup.number().required().default(0),
-    contactMethod: yup.string().required().default('Discord'),
     vehicleClass: yup.string().required().default(''),
     eventInfo: yup.string().required().default(''),
     series: yup.string().default(''),
     track: yup.string().default(''),
+    singleEventTitle: yup.string().default(''),
   });
 
   const formState = createForm<FormData>({
@@ -83,6 +83,8 @@
           eventInfo: formCopy.eventInfo,
           series: formCopy.series,
           track: formCopy.track,
+          singleEventTitle: formCopy.singleEventTitle,
+          leagueLink: leagueLink,
         },
         userId,
       )
@@ -110,9 +112,10 @@
                   eventInfo: formCopy.eventInfo,
                   series: formCopy.series,
                   track: 'Revolving',
+                  leagueLink: leagueLink,
                 },
               },
-              shortenedName,
+              leagueLink,
             )
             .catch(() => (errorFlag = true));
         } else {
@@ -135,8 +138,10 @@
                 eventInfo: formCopy.eventInfo,
                 series: formCopy.series,
                 track: formCopy.track,
+                singleEventTitle: formCopy.singleEventTitle,
+                leagueLink: leagueLink,
               },
-              shortenedName,
+              leagueLink,
             )
             .catch(() => (errorFlag = true));
         }
@@ -154,6 +159,7 @@
   }
 
   $: form.subscribe((form) => {
+    repeatWeekly = form.repeatWeekly;
     formCopy = form;
   });
 </script>
@@ -226,6 +232,21 @@
                     class="short"
                   />
                   <LabeledDateSelector name="endDate" label="End Date" />
+                {:else}
+                  <LabeledField
+                    name="singleEventTitle"
+                    label="Event Title"
+                    type="text"
+                    placeholder="ex. Monday Night Madness"
+                    class="short"
+                  />
+                  <LabeledField
+                    name="track"
+                    label="Track"
+                    type="text"
+                    placeholder="ex. Dragon Trail"
+                    class="short"
+                  />
                 {/if}
               </fieldset>
               <fieldset>
@@ -236,39 +257,6 @@
                   placeholder="Ex. GR 3"
                   short={true}
                 />
-                {#if !repeatWeekly}
-                  <LabeledField
-                    name="track"
-                    label="Track"
-                    type="text"
-                    placeholder="ex. Dragon Trail"
-                    class="short"
-                  />
-                {/if}
-                <!-- <LabeledRadioGroup
-                  name="contactMethod"
-                  label="Contact Method"
-                  options={contactOptions}
-                  labelClass=""
-                  flexColumnsAlways={true}
-                />
-                {#if contactEmail}
-                  <LabeledField
-                    name="email"
-                    label="Email"
-                    type="text"
-                    icon="email"
-                    placeholder="Ex. yourname@domain.com"
-                  />
-                {:else} -->
-                <LabeledField
-                  name="discordServer"
-                  label="Discord server"
-                  type="text"
-                  icon=""
-                  placeholder="Ex. https://discord.gg/sCCJ7DoN"
-                />
-
                 <LabeledTextarea name="eventInfo" label="Event Info" />
               </fieldset>
             </div>

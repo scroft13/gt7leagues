@@ -19,6 +19,7 @@ declare module 'yup' {
     verifyCheckInDate(): StringSchema;
     greaterThan(): StringSchema;
     valueNotUsed(valueList: string[]): StringSchema;
+    xDigitsOnly(x: number): StringSchema;
   }
   interface NumberSchema {
     quantityCheck(number: number): NumberSchema;

@@ -274,4 +274,17 @@ yup.addMethod(yup.string, 'valueNotUsed', function (values, errorMessage) {
     }
   });
 });
+yup.addMethod(yup.string, 'xDigitsOnly', function (maxLength, errorMessage) {
+  return this.test(`xDigitsOnly`, errorMessage, function (value) {
+    const { path, createError } = this;
+    if (!value) {
+      return true;
+    }
+    if (value && value.length != maxLength) {
+      return createError({ path, message: 'This must be three digits exactly.' });
+    } else {
+      return true;
+    }
+  });
+});
 export default yup;

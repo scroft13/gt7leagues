@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { writable } from 'svelte/store';
-import type { LeagueEvent, League, ServerEvent, LeagueSeries } from './shared';
+import type { LeagueEvent, League, ServerEvent, LeagueSeries, Post } from './shared';
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -37,7 +37,7 @@ export default {
   signOut() {
     return supabase.auth.signOut();
   },
-  users: {
+  currentUser: {
     async all() {
       const { data } = await supabase.from('userInfo').select();
       return data;
@@ -92,6 +92,23 @@ export default {
         return usernameList;
       }
     },
+    async getUserInfo(userId: string) {
+      const response = await supabase
+        .from('userInfo')
+        .select('*')
+        .match({ user_id: userId })
+        .single();
+
+      return response;
+    },
+    async getUserPic(username: string) {
+      const response = await supabase
+        .from('userInfo')
+        .select('imageUrl')
+        .match({ username: username })
+        .single();
+      return response;
+    },
   },
 
   publicEventsList: {
@@ -116,6 +133,8 @@ export default {
         series: publicEvent.series,
         track: publicEvent.track,
         leagueName: publicEvent.leagueName,
+        singleEventName: publicEvent.singleEventTitle,
+        leagueLink: publicEvent.leagueLink,
       };
       const data = await supabase.from('publicEvents').insert([publicDbEvent]);
       return data;
@@ -131,11 +150,11 @@ export default {
         ? await supabase.from('leagues').insert(league).eq('ownerId', league.ownerId)
         : null;
     },
-    async find(shortenedName: string) {
+    async find(leagueLink: string) {
       const { data: leagues, error } = await supabase
         .from('leagues')
         .select('*')
-        .eq('shortenedName', shortenedName);
+        .eq('leagueLink', leagueLink);
       if (!error) {
         if (leagues.length != 0) return leagues;
       }
@@ -145,42 +164,87 @@ export default {
 
       return leagues;
     },
-    async findJoined(email: string) {
-      const { data: leagues } = await supabase
+    async findJoined(username: string, userId: string) {
+      const { data: leagues } = await supabase.from('leagues').select('*');
+      const leaguesJoined: League[] = [];
+      leagues?.forEach((league: League) => {
+        console.log(league.members);
+        league.members.forEach((member) => {
+          if (member.username === username && league.ownerId != userId) {
+            leaguesJoined.push(league);
+          }
+        });
+      });
+
+      return leaguesJoined;
+    },
+    async join(leagueLink: string, username: string, role: 'Manager' | 'Racer') {
+      let members: { username: string; role: 'Manager' | 'Racer' }[] = [];
+      await supabase
         .from('leagues')
         .select('*')
-        .contains('memberIds', [email]);
-      return leagues;
-    },
-    async join(shortenedName: string) {
+        .eq('leagueLink', leagueLink)
+        .single()
+        .then(
+          (data) => {
+            members = data.data.members;
+          },
+          (error) => {
+            return error;
+          },
+        );
+      members?.push({ username: username, role: role });
       const { data: leagues } = await supabase
         .from('leagues')
         .update({
-          memberIds: [user_email],
+          members: members,
         })
-        .eq('shortenedName', shortenedName);
-
+        .eq('leagueLink', leagueLink);
       return leagues;
     },
-    async addSingleEvent(event: LeagueEvent, shortenedName: string) {
+    async addSingleEvent(event: LeagueEvent, leagueLink: string) {
       const data = await supabase
         .from('leagues')
         .update({
           singleEvents: [event],
         })
-        .eq('shortenedName', shortenedName);
+        .eq('leagueLink', leagueLink);
 
       return data;
     },
-    async addSeries(event: LeagueSeries, shortenedName: string) {
+    async addSeries(event: LeagueSeries, leagueLink: string) {
       const data = await supabase
         .from('leagues')
         .update({
           seriesEvents: [event],
         })
-        .eq('shortenedName', shortenedName);
+        .eq('leagueLink', leagueLink);
 
       return data;
+    },
+    async addPost(leagueId: string, post: Post) {
+      let posts: Post[] = [];
+      await supabase
+        .from('leagues')
+        .select('*')
+        .eq('id', leagueId)
+        .single()
+        .then(
+          (data) => {
+            posts = data.data?.posts;
+          },
+          (error) => {
+            return error;
+          },
+        );
+      posts.push(post);
+      const { data: leagues } = await supabase
+        .from('leagues')
+        .update({
+          posts: posts,
+        })
+        .eq('id', leagueId);
+      return leagues;
     },
   },
 };

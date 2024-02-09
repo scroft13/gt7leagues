@@ -10,12 +10,21 @@
   export let iconType: 'person' | 'email' | 'globe' | 'phone' | undefined = undefined;
   export let dependsOn: string[] | undefined = undefined;
   export let disabled = false;
+  export let maxLength = 99;
 </script>
 
 <div {...extractWrapperProps($$props)} class:checkbox={type == 'checkbox'}>
   {#if label && typeof label === 'string'}
     <Label {name} {disabled} title={label} />
   {/if}
-  <Field {name} {type} {...extractInputProps($$props)} {placeholder} {iconType} {dependsOn} />
+  <Field
+    {name}
+    {type}
+    {...extractInputProps($$props)}
+    {placeholder}
+    {iconType}
+    {dependsOn}
+    {maxLength}
+  />
   <ErrorMessage {name} />
 </div>

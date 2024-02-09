@@ -9,20 +9,37 @@
   import ChevronDown from '@rgossiaux/svelte-heroicons/solid/ChevronDown';
   import ChevronUp from '@rgossiaux/svelte-heroicons/solid/ChevronUp';
   import { goto } from '$app/navigation';
+  import NewMessageModal from '$lib/components/NewMessageModal.svelte';
+  import { marked } from 'marked';
+  import { displayDateNumerical, displayTime } from '$lib/formatters';
 
   export let data: PageData;
   let openEventModal = false;
-  let shortenedName = data.shortenedName ?? '';
+  let openMessageModal = false;
+  let leagueLink = data.leagueLink ?? '';
   let leagueInfo: League | null = data.leagueInfo ?? null;
   let user: User | null = data.user ?? null;
-  let showMoreBlurb = false;
-  let blurbTooSmall: boolean;
+  let showMoreBlurb = true;
+  let blurbTooSmall: boolean = true;
   let userId: string = data.user?.id ?? '';
+  let leagueRole: 'Manager' | 'Racer';
+  let leagueInfoDiv: HTMLParagraphElement;
 
   onMount(async () => {
     if (data.redirect) goto('/league/notfound/noLeague');
-    if (leagueInfo)
-      leagueInfo.leagueInfo.length > 500 ? (blurbTooSmall = false) : (blurbTooSmall = true);
+    if (leagueInfo && data.user) {
+      if (leagueInfoDiv.clientHeight > 150) {
+        blurbTooSmall = false;
+        showMoreBlurb = false;
+      } else {
+        blurbTooSmall = true;
+      }
+      if (data.user.id === leagueInfo.ownerId) {
+        leagueRole = 'Manager';
+      } else if (leagueInfo.members.find((x) => x.username === data.username)) {
+        leagueRole = 'Racer';
+      }
+    }
   });
 
   async function launchAddEvent() {
@@ -30,7 +47,7 @@
   }
 
   async function joinLeague() {
-    db.leagues.join(shortenedName).then(() => {
+    db.leagues.join(leagueLink, data.username ?? '', 'Racer').then(() => {
       if (leagueInfo)
         addToast({
           type: 'success',
@@ -38,6 +55,10 @@
           id: Math.floor(Math.random() * 10000),
         });
     });
+  }
+
+  async function addMessage() {
+    openMessageModal = true;
   }
 </script>
 
@@ -48,8 +69,21 @@
       openEventModal = false;
     }}
     leagueName={leagueInfo?.leagueAcronym ?? ''}
-    {shortenedName}
+    {leagueLink}
     {userId}
+  />
+{/if}
+{#if openMessageModal && leagueInfo && user && data.username}
+  <NewMessageModal
+    open={openMessageModal}
+    on:close={() => {
+      openMessageModal = false;
+    }}
+    type="League"
+    {leagueInfo}
+    {user}
+    username={data.username}
+    {leagueRole}
   />
 {/if}
 {#if leagueInfo && user}
@@ -79,27 +113,112 @@
         {/if}
       </button>
     {:else}
-      <p class={'mx-2 text-left relative'}>
+      <p class={'mx-2 text-left relative'} bind:this={leagueInfoDiv}>
         {leagueInfo.leagueInfo}
       </p>
     {/if}
-    {#if leagueInfo.memberIds.find((x) => x === user?.email)}
-      Your are a member of this league
+    {#if leagueInfo.members.find((x) => x.username === data.username)}
+      <p class="secondary-text italic">Your are a member of this league</p>
     {/if}
-    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Series</p>
-    {#each leagueInfo.seriesEvents as series}
-      <a href="/league/{shortenedName}/{series.name}">{series.name}</a>
-    {/each}
-    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">Single Events</p>
-    {#each leagueInfo.singleEvents as event}
-      {event.title}
-    {/each}
+    <p class="text-xl font-semibold main-text text-center lg:text-left w-full">League Series</p>
+    {#if leagueInfo.seriesEvents.length > 0}
+      {#each leagueInfo.seriesEvents as series}
+        <a
+          href="/league/{leagueLink}/{series.name}"
+          class="flex w-full gap-2 justify-evenly flex-col lg:flex-row border lg:border-0 p-2 lg:p-0 rounded shadow-md  lg:shadow-none"
+        >
+          <p class="font-bold text-lg">{series.name}</p>
+          <div class="flex flex-col gap-[1px]">
+            <p class="italic font-medium secondary-text">
+              {displayDateNumerical(series.eventDetails.startDate)} - {displayDateNumerical(
+                series.eventDetails.endDate ?? new Date(),
+              )}
+            </p>
+            <p class="italic font-medium secondary-text">
+              {displayTime(series.eventDetails.startDate)}
+            </p>
+            <p class="italic font-medium secondary-text">
+              Vehicle Class: {series.eventDetails.vehicleClass}
+            </p>
+          </div>
+          <p class="text-lg">
+            {series.eventDetails.eventInfo}
+          </p>
+        </a>
+      {/each}
+    {:else}
+      <p class="secondary-text">There are currently not any series scheduled</p>
+    {/if}
+    <p class="text-xl font-semibold main-text text-center lg:text-left w-full">Single Events</p>
+    {#if leagueInfo.singleEvents.length > 0}
+      {#each leagueInfo.singleEvents as event}
+        <div
+          class="flex flex-col lg:grid lg:grid-cols-checkout w-full gap-2 justify-evenly border lg:border-0 p-2 lg:p-0 rounded shadow-md lg:shadow-none"
+        >
+          <p class="font-bold text-lg">
+            {event.singleEventTitle}
+          </p>
+          <div class="flex flex-col gap-[1px]">
+            <p class="italic font-medium secondary-text">
+              {displayDateNumerical(event.startDate)}
+            </p>
+            <p class="italic font-medium secondary-text">
+              {displayTime(event.startDate)}
+            </p>
+            <p class="italic font-medium secondary-text">
+              {event.vehicleClass}
+            </p>
+          </div>
+          <p class="text-lg">
+            {event.eventInfo}
+          </p>
+        </div>
+      {/each}
+    {:else}
+      <p class="secondary-text">There are currently not any single events scheduled</p>
+    {/if}
 
     {#if user.id === leagueInfo.ownerId}
       <button on:click={() => launchAddEvent()} class="btn-primary">Add Event</button>
-    {:else if !leagueInfo.memberIds.find((x) => x === user?.email)}
+    {:else if !leagueInfo.members.find((x) => x.username === data.username)}
       <button on:click={() => joinLeague()} class="btn-primary">Join League</button>
     {/if}
+    <p class="text-xl font-semibold main-text text-center lg:text-left w-full">League Messages</p>
+    {#each leagueInfo.posts as post}
+      <div class="text-left w-full border p-2 rounded flex gap-6 flex-col lg:flex-row shadow-md">
+        <div class="font-bold flex lg:flex-col gap-2 flex-wrap">
+          <p>
+            {post.username}
+          </p>
+          <p>
+            {displayDateNumerical(post.date)}
+          </p>
+          <p>
+            {displayTime(post.date)}
+          </p>
+        </div>
+        <div class="font-normal inline-table">
+          {@html marked(JSON.parse(post.message))}
+        </div>
+      </div>
+    {/each}
+    {#if user.id === leagueInfo.ownerId}
+      <button on:click={() => addMessage()} class="btn-primary">Add Message</button>
+    {:else if leagueInfo.members.find((x) => x.username === data.username)}
+      <button on:click={() => addMessage()} class="btn-primary">Add Message</button>
+    {/if}
+
+    <p class="text-xl font-semibold main-text text-center lg:text-left w-full">Members</p>
+    <div class="flex gap-x-6 gap-y-2 w-full flex-row flex-wrap mb-20">
+      {#each leagueInfo.members as member}
+        <a href="/user/{member.username}" class="flex gap-x-2 border rounded p-2">
+          <p class="text-bold">{member.username}</p>
+          <p class={member.role === 'Manager' ? 'text-red-500' : ''}>
+            {member.role}
+          </p>
+        </a>
+      {/each}
+    </div>
   </div>
 {:else}
   <div class="w-full">

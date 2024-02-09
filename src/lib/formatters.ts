@@ -41,6 +41,20 @@ export function displayDateNumerical(date: Date): string {
       : new Date(date).getDate();
   return month + '/' + day + '/' + new Date(date).getFullYear();
 }
+export function displayTime(date: Date): string {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const formattedDateString = date.toLocaleString('en-US', {
+    timeZone: timezone,
+  });
+  const twentyFourHours = new Date(formattedDateString).getHours();
+  const actualMinutes = new Date(formattedDateString).getMinutes();
+  const hours =
+    twentyFourHours > 12 ? (twentyFourHours - 12).toString() : twentyFourHours.toString();
+  const minutes = actualMinutes < 10 ? '0' + actualMinutes.toString() : actualMinutes.toString();
+  const amPm = twentyFourHours > 12 ? 'p.m.' : 'a.m.';
+  return hours + ':' + minutes + ' ' + amPm;
+  // return hours + ':' + new Date(date).getUTCMinutes();
+}
 
 export function addZeroToDay(day: number): string {
   if (day < 10) {
