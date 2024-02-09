@@ -109,6 +109,13 @@ export default {
         .single();
       return response;
     },
+    async setUserPic(url: string, user_id: string) {
+      const response = await supabase
+        .from('userInfo')
+        .update({ imageUrl: url })
+        .eq('user_id', user_id);
+      return response;
+    },
   },
 
   publicEventsList: {
