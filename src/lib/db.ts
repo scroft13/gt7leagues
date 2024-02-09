@@ -37,7 +37,7 @@ export default {
   signOut() {
     return supabase.auth.signOut();
   },
-  users: {
+  currentUser: {
     async all() {
       const { data } = await supabase.from('userInfo').select();
       return data;
@@ -91,6 +91,23 @@ export default {
         );
         return usernameList;
       }
+    },
+    async getUserInfo(userId: string) {
+      const response = await supabase
+        .from('userInfo')
+        .select('*')
+        .match({ user_id: userId })
+        .single();
+
+      return response;
+    },
+    async getUserPic(username: string) {
+      const response = await supabase
+        .from('userInfo')
+        .select('imageUrl')
+        .match({ username: username })
+        .single();
+      return response;
     },
   },
 

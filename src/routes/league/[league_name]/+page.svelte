@@ -19,15 +19,21 @@
   let leagueLink = data.leagueLink ?? '';
   let leagueInfo: League | null = data.leagueInfo ?? null;
   let user: User | null = data.user ?? null;
-  let showMoreBlurb = false;
-  let blurbTooSmall: boolean;
+  let showMoreBlurb = true;
+  let blurbTooSmall: boolean = true;
   let userId: string = data.user?.id ?? '';
   let leagueRole: 'Manager' | 'Racer';
+  let leagueInfoDiv: HTMLParagraphElement;
 
   onMount(async () => {
     if (data.redirect) goto('/league/notfound/noLeague');
     if (leagueInfo && data.user) {
-      leagueInfo.leagueInfo.length > 500 ? (blurbTooSmall = false) : (blurbTooSmall = true);
+      if (leagueInfoDiv.clientHeight > 150) {
+        blurbTooSmall = false;
+        showMoreBlurb = false;
+      } else {
+        blurbTooSmall = true;
+      }
       if (data.user.id === leagueInfo.ownerId) {
         leagueRole = 'Manager';
       } else if (leagueInfo.members.find((x) => x.username === data.username)) {
@@ -107,44 +113,67 @@
         {/if}
       </button>
     {:else}
-      <p class={'mx-2 text-left relative'}>
+      <p class={'mx-2 text-left relative'} bind:this={leagueInfoDiv}>
         {leagueInfo.leagueInfo}
       </p>
     {/if}
     {#if leagueInfo.members.find((x) => x.username === data.username)}
       <p class="secondary-text italic">Your are a member of this league</p>
     {/if}
-    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Series</p>
+    <p class="text-xl font-semibold main-text text-center lg:text-left w-full">League Series</p>
     {#if leagueInfo.seriesEvents.length > 0}
       {#each leagueInfo.seriesEvents as series}
-        <a href="/league/{leagueLink}/{series.name}">{series.name}</a>
+        <a
+          href="/league/{leagueLink}/{series.name}"
+          class="flex w-full gap-2 justify-evenly flex-col lg:flex-row border lg:border-0 p-2 lg:p-0 rounded shadow-md  lg:shadow-none"
+        >
+          <p class="font-bold text-lg">{series.name}</p>
+          <div class="flex flex-col gap-[1px]">
+            <p class="italic font-medium secondary-text">
+              {displayDateNumerical(series.eventDetails.startDate)} - {displayDateNumerical(
+                series.eventDetails.endDate ?? new Date(),
+              )}
+            </p>
+            <p class="italic font-medium secondary-text">
+              {displayTime(series.eventDetails.startDate)}
+            </p>
+            <p class="italic font-medium secondary-text">
+              Vehicle Class: {series.eventDetails.vehicleClass}
+            </p>
+          </div>
+          <p class="text-lg">
+            {series.eventDetails.eventInfo}
+          </p>
+        </a>
       {/each}
     {:else}
       <p class="secondary-text">There are currently not any series scheduled</p>
     {/if}
-    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">Single Events</p>
+    <p class="text-xl font-semibold main-text text-center lg:text-left w-full">Single Events</p>
     {#if leagueInfo.singleEvents.length > 0}
-      <div
-        class="flex w-full gap-2 justify-evenly flex-col lg:flex-row border lg:border-0 p-2 lg:p-0 rounded"
-      >
-        {#each leagueInfo.singleEvents as event}
-          <p>
+      {#each leagueInfo.singleEvents as event}
+        <div
+          class="flex flex-col lg:grid lg:grid-cols-checkout w-full gap-2 justify-evenly border lg:border-0 p-2 lg:p-0 rounded shadow-md lg:shadow-none"
+        >
+          <p class="font-bold text-lg">
             {event.singleEventTitle}
           </p>
-          <p>
-            {displayDateNumerical(event.startDate)}
-          </p>
-          <p>
-            {displayTime(event.startDate)}
-          </p>
-          <p>
-            {event.vehicleClass}
-          </p>
-          <p>
+          <div class="flex flex-col gap-[1px]">
+            <p class="italic font-medium secondary-text">
+              {displayDateNumerical(event.startDate)}
+            </p>
+            <p class="italic font-medium secondary-text">
+              {displayTime(event.startDate)}
+            </p>
+            <p class="italic font-medium secondary-text">
+              {event.vehicleClass}
+            </p>
+          </div>
+          <p class="text-lg">
             {event.eventInfo}
           </p>
-        {/each}
-      </div>
+        </div>
+      {/each}
     {:else}
       <p class="secondary-text">There are currently not any single events scheduled</p>
     {/if}
@@ -154,10 +183,10 @@
     {:else if !leagueInfo.members.find((x) => x.username === data.username)}
       <button on:click={() => joinLeague()} class="btn-primary">Join League</button>
     {/if}
-    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">League Messages</p>
+    <p class="text-xl font-semibold main-text text-center lg:text-left w-full">League Messages</p>
     {#each leagueInfo.posts as post}
-      <div class="text-left w-full border p-2 rounded flex gap-6">
-        <div class="font-bold flex flex-col">
+      <div class="text-left w-full border p-2 rounded flex gap-6 flex-col lg:flex-row shadow-md">
+        <div class="font-bold flex lg:flex-col gap-2 flex-wrap">
           <p>
             {post.username}
           </p>
@@ -168,7 +197,7 @@
             {displayTime(post.date)}
           </p>
         </div>
-        <div class="font-normal  ml-2 inline-table">
+        <div class="font-normal inline-table">
           {@html marked(JSON.parse(post.message))}
         </div>
       </div>
@@ -179,10 +208,10 @@
       <button on:click={() => addMessage()} class="btn-primary">Add Message</button>
     {/if}
 
-    <p class="text-lg font-semibold main-text text-center lg:text-left w-full">Members</p>
-    <div class="flex gap-12 w-full flex-row">
+    <p class="text-xl font-semibold main-text text-center lg:text-left w-full">Members</p>
+    <div class="flex gap-x-6 gap-y-2 w-full flex-row flex-wrap mb-20">
       {#each leagueInfo.members as member}
-        <a href="/user/{member.username}" class="grid grid-cols-2 gap-4">
+        <a href="/user/{member.username}" class="flex gap-x-2 border rounded p-2">
           <p class="text-bold">{member.username}</p>
           <p class={member.role === 'Manager' ? 'text-red-500' : ''}>
             {member.role}

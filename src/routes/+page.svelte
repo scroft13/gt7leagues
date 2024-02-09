@@ -295,7 +295,7 @@
 
   async function checkUsernameOnList() {
     if (user) {
-      const username = await db.users.currentUsername(user.id);
+      const username = await db.currentUser.currentUsername(user.id);
       if (!username) {
         setUsername = true;
       }

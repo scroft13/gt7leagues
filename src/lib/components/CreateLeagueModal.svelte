@@ -50,7 +50,7 @@
   let username: string;
   onMount(async () => {
     ownerID = user.id;
-    username = await db.users.currentUsername(ownerID);
+    username = await db.currentUser.currentUsername(ownerID);
   });
 
   const formState = createForm<FormData>({

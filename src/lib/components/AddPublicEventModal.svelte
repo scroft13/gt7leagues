@@ -84,6 +84,7 @@
           series: formCopy.series,
           track: formCopy.track,
           singleEventTitle: formCopy.singleEventTitle,
+          leagueLink: leagueLink,
         },
         userId,
       )
@@ -111,6 +112,7 @@
                   eventInfo: formCopy.eventInfo,
                   series: formCopy.series,
                   track: 'Revolving',
+                  leagueLink: leagueLink,
                 },
               },
               leagueLink,
@@ -137,6 +139,7 @@
                 series: formCopy.series,
                 track: formCopy.track,
                 singleEventTitle: formCopy.singleEventTitle,
+                leagueLink: leagueLink,
               },
               leagueLink,
             )

@@ -31,7 +31,7 @@
       initialValues: formSchema.cast({}) as FormData,
       validationSchema: formSchema,
       onSubmit: async (formData) => {
-        db.users
+        db.currentUser
           .setUsername(formData.username)
           .then(() => {
             addToast({
