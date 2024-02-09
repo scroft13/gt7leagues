@@ -42,7 +42,7 @@
           <Fa icon={faUser} scale={3} translateX={2} translateY={2} />
         </div>
       {/if}
-      <div class="absolute">
+      <div class="absolute -top-3 -right-3">
         {#if data.isCurrentUser}
           <button on:click={() => (showImageUpload = true)}>
             <Fa icon={faPaintbrush} primaryColor={'gray'} />

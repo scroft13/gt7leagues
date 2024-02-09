@@ -1,5 +1,6 @@
 <script lang="ts">
   import db, { supabase } from '$lib/db';
+  import { addToast } from '$lib/stores';
   import {
     Dialog,
     DialogOverlay,
@@ -13,6 +14,7 @@
 
   export let open: boolean;
   export let userId: string;
+  let loading = false;
   const dispatch = createEventDispatcher();
   function close() {
     open = false;
@@ -29,17 +31,29 @@
 
   const uploadImage = async () => {
     if (!file) return;
-
+    loading = true;
     const { data, error } = await supabase.storage
       .from('userImages')
       .upload(`user_${Date.now()}_${file.name}`, file);
 
     if (error) {
+      addToast({
+        id: Math.floor(Math.random() * 1000),
+        message: error.message,
+        type: 'error',
+      });
       console.error('Error uploading image:', error.message);
     } else {
       console.log('Image uploaded successfully:', data);
       let fileUrl = data.path;
       db.currentUser.setUserPic(fileUrl, userId);
+      loading = false;
+      addToast({
+        id: Math.floor(Math.random() * 1000),
+        message: 'Your image was uploaded successfully!',
+        type: 'success',
+      });
+      close();
     }
   };
 </script>
@@ -78,12 +92,17 @@
             <XIcon class="h-5 w-5" />
           </button>
         </div>
+        <div class="mx-4 lg:mx-16">
+          <h4 class="text-xl">Image Upload</h4>
+          <div class="hr-div mb-6" />
 
-        <h1 class="text-2xl font-semibold mb-4">Image Upload</h1>
-        <input type="file" accept="image/*" on:change={handleFileChange} class="mb-4" />
-        <button on:click={uploadImage} class="bg-blue-500 text-white px-4 py-2 rounded"
-          >Upload Image</button
-        >
+          <input type="file" accept="image/*" on:change={handleFileChange} class="mb-4" />
+          <button
+            on:click={uploadImage}
+            class="bg-blue-500 text-white px-4 py-2 rounded mb-6"
+            disabled={loading}>Upload Image</button
+          >
+        </div>
       </div>
     </TransitionChild>
   </Dialog>
