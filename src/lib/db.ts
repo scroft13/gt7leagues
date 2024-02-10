@@ -174,7 +174,6 @@ export default {
       const { data: leagues } = await supabase.from('leagues').select('*');
       const leaguesJoined: League[] = [];
       leagues?.forEach((league: League) => {
-        console.log(league.members);
         league.members.forEach((member) => {
           if (member.username === username && league.ownerId != userId) {
             leaguesJoined.push(league);

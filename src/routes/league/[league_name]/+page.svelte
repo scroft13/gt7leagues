@@ -24,7 +24,6 @@
   let userId: string = data.user?.id ?? '';
   let leagueRole: 'Manager' | 'Racer';
   let leagueInfoDiv: HTMLParagraphElement;
-  $: console.log(leagueInfo?.seriesEvents);
 
   onMount(async () => {
     if (data.redirect) goto('/league/notfound/noLeague');
