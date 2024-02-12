@@ -24,6 +24,7 @@ export type UserInfo = {
   user_id: string;
   username: string;
   email: string;
+  imageUrl: string;
 };
 
 export type CalendarEvents = {
@@ -86,6 +87,13 @@ export type Post = {
   leagueRole: 'Manager' | 'Racer';
   message: string;
   date: Date;
+};
+
+export type LeagueInfo = {
+  leagueName: string;
+  leagueAcronym: string;
+  id: string;
+  leagueLink: string;
 };
 
 export type League = {

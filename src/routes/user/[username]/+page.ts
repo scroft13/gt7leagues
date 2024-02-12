@@ -1,24 +1,22 @@
 import db, { supabase } from '$lib/db.js';
+import { storedUser } from '$lib/stores.js';
 import { error } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params }) {
   if (params.username) {
-    const { data } = await db.currentUser.getUserPic(params.username);
-    const user = await supabase.auth.getUser();
-    let currentUserInfo;
     let isCurrentUser = false;
-    if (user.data?.user) {
-      currentUserInfo = await db.currentUser.getUserInfo(user.data.user.id);
-    }
-    if (currentUserInfo?.data.username === params.username) {
+    let storedUserUsername = '';
+    storedUser.subscribe((user) => {
+      if (user) {
+        storedUserUsername = user.username;
+      }
+    });
+    if (storedUserUsername === params.username) {
       isCurrentUser = true;
     }
 
     return {
-      user,
-      userImageUrl: data?.imageUrl,
-      username: params.username,
       isCurrentUser,
     };
   }
