@@ -77,7 +77,6 @@ export default {
     },
     async getUsernameList() {
       const data = await supabase.from('userInfo').select('*');
-
       if (data.data) {
         const usernameList: (string | null)[] = data.data?.map(
           (userInfo: {
@@ -90,7 +89,7 @@ export default {
           },
         );
         return usernameList;
-      }
+      } else return;
     },
     async getUserInfo(userId: string) {
       const response = await supabase
@@ -175,16 +174,15 @@ export default {
       const { data: leagues } = await supabase.from('leagues').select('*');
       const leaguesJoined: League[] = [];
       leagues?.forEach((league: League) => {
-        console.log(league.members);
         league.members.forEach((member) => {
           if (member.username === username && league.ownerId != userId) {
             leaguesJoined.push(league);
           }
         });
       });
-
       return leaguesJoined;
     },
+
     async join(leagueLink: string, username: string, role: 'Manager' | 'Racer') {
       let members: { username: string; role: 'Manager' | 'Racer' }[] = [];
       await supabase

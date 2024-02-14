@@ -10,7 +10,6 @@ export async function load() {
   });
 
   return {
-    username: null,
     usernameList: usernameList,
   };
 }

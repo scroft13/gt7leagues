@@ -7,21 +7,18 @@
   import DayGrid from '@event-calendar/day-grid';
   // @ts-ignore
   import TimeGrid from '@event-calendar/time-grid';
-  import type { League } from '$lib/shared';
+  import type { CalendarEvents, League, ServerEvent } from '$lib/shared';
   import db, { supabase } from '$lib/db';
   import type { User } from '@supabase/supabase-js';
   import LoginModal from '$lib/components/LoginModal.svelte';
   import CreateLeagueModal from '$lib/components/CreateLeagueModal.svelte';
   import type { PageData } from './$types';
+  import SetUsername from '$lib/components/SetUsername.svelte';
   import ForgotPassword from '$lib/components/ForgotPassword.svelte';
   import ChevronUp from '@rgossiaux/svelte-heroicons/outline/ChevronUp';
   import ChevronDown from '@rgossiaux/svelte-heroicons/outline/ChevronDown';
   import { goto } from '$app/navigation';
-<<<<<<< Updated upstream
-=======
-  import { addToast, publicEvents, storedUser, updateListener } from '$lib/stores';
-  import SetUsername from '$lib/components/SetUsername.svelte';
->>>>>>> Stashed changes
+  import { storedUser } from '$lib/stores';
 
   const plugins = [DayGrid, TimeGrid];
   export let data: PageData;
@@ -29,12 +26,8 @@
   let setUsername = false;
 
   let ec: Calendar;
-<<<<<<< Updated upstream
   let events: CalendarEvents[] = [];
   let user: User;
-=======
-  let user: User | null;
->>>>>>> Stashed changes
   let clientWidth: number;
   let view: string = 'timeGridWeek';
 
@@ -50,7 +43,7 @@
     eventClick: (e: any) => {
       linkToLeague(e);
     },
-    events: $publicEvents,
+    events: events,
   };
   let showLeagueAddModal = false;
   let showLoginModal = false;
@@ -61,17 +54,27 @@
   let joinedLeagues: League[] = [];
   let showMoreBlurb = false;
 
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   onMount(async () => {
-    // data.username === null ? (setUsername = true) : (setUsername = false);
+    $storedUser?.username === null ? (setUsername = true) : (setUsername = false);
+    const {
+      data: { subscription: authListener },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      if (session) {
+        user = session.user;
+      }
+    });
 
     supabase
       .channel('publicEvents')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'publicEvents' },
-        updateListener,
+        handleInserts,
       )
       .subscribe();
+    events = await updateEvents();
     if (clientWidth <= 750) {
       view = 'timeGridDay';
       headerToolbar = {
@@ -81,7 +84,7 @@
       };
       options = {
         view: view,
-        events: $publicEvents,
+        events: events,
         headerToolbar: headerToolbar,
         allDaySlot: false,
         eventClick: (e: any) => {
@@ -97,7 +100,7 @@
       };
       options = {
         view: view,
-        events: $publicEvents,
+        events: events,
         headerToolbar: headerToolbar,
         allDaySlot: false,
         eventClick: (e: any) => {
@@ -105,16 +108,16 @@
         },
       };
     }
-    console.log($storedUser);
-
-    ownedLeagues = (await db.leagues.findOwned($storedUser?.user_id ?? '')) ?? [];
-    joinedLeagues =
-      (await db.leagues.findJoined($storedUser?.email ?? '', $storedUser?.user_id ?? '')) ?? [];
-    console.log(ownedLeagues, joinedLeagues);
+    if (user) {
+      ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
+      joinedLeagues = (await db.leagues.findJoined($storedUser?.username ?? '', user.id)) ?? [];
+    }
     loading = false;
+    return () => {
+      authListener?.unsubscribe();
+    };
   });
 
-<<<<<<< Updated upstream
   async function updateEvents(): Promise<CalendarEvents[]> {
     let tempEventList: CalendarEvents[] = [];
     await db.publicEventsList.all().then((eventList) => {
@@ -128,7 +131,6 @@
           endDateTime.setHours(endDateTime.getHours() + publicEvent.duration_hrs);
           const modifiedDateString = endDateTime.toString();
           if (!publicEvent.is_series) {
-            console.log(publicEvent);
             tempEventList.push({
               id: publicEvent.id,
               start: new Date(formattedDateString),
@@ -275,8 +277,6 @@
     return `rgba(${adjustedRed}, ${adjustedGreen}, ${adjustedBlue}, .8)`;
   }
 
-=======
->>>>>>> Stashed changes
   function linkToLeague(e: any) {
     console.log(e.event.extendedProps);
     goto('/league/' + e.event.extendedProps.leagueLink);
@@ -287,19 +287,6 @@
       const { error } = await supabase.auth.signOut();
       if (error) {
         throw new Error(error.message);
-<<<<<<< Updated upstream
-=======
-      } else {
-        storedUser.update(() => {
-          return null;
-        });
-        addToast({
-          id: Math.floor(Math.random() * 1000),
-          message: 'You have been successfully logged out.',
-          type: 'success',
-        });
-        user = null;
->>>>>>> Stashed changes
       }
     } catch (error: any) {
       console.error('Error logging out:', error.message);
@@ -319,8 +306,6 @@
     showLoginModal = true;
     isLoginMode = loginMode;
   }
-
-  $: console.log($publicEvents, $storedUser);
 </script>
 
 {#if showLoginModal}
@@ -329,16 +314,10 @@
     {isLoginMode}
     on:close={async (data) => {
       showLoginModal = false;
-<<<<<<< Updated upstream
       console.log(data.detail.user);
       user = data.detail.user;
       ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
       joinedLeagues = (await db.leagues.findJoined(user.email ?? '', user.id)) ?? [];
-=======
-      storedUser.update(() => data.detail.user);
-      ownedLeagues = (await db.leagues.findOwned(user?.id ?? '')) ?? [];
-      joinedLeagues = (await db.leagues.findJoined(user?.email ?? '', user?.id ?? '')) ?? [];
->>>>>>> Stashed changes
       checkUsernameOnList();
     }}
     on:forgotPassword={() => {
@@ -388,11 +367,10 @@
         </div>
       </div>
     {:else}
-      {#if $storedUser}
+      {#if user}
         <div class="mx-4 flex flex-col gap-2">
           <div class="flex flex-col gap-2">
             <p class="text-primary text-2xl">Managed Leagues</p>
-
             {#each ownedLeagues as league}
               <a href={'/league/' + league.leagueLink}> {league.leagueName}</a>
             {/each}
