@@ -33,7 +33,6 @@ export const addToast = (toast: ToastType) => {
 };
 
 export const dismissToast = (id: number) => {
-  console.log('now', id);
   toasts.update((all) => all.filter((t: ToastType) => t.id !== id));
 };
 // Create a writable store with a set function

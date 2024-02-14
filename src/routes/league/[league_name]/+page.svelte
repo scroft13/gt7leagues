@@ -130,12 +130,12 @@
           <p class="font-bold text-lg">{series.name}</p>
           <div class="flex flex-col gap-[1px]">
             <p class="italic font-medium secondary-text">
-              {displayDateNumerical(series.eventDetails.startDate)} - {displayDateNumerical(
+              {displayDateNumerical(series.eventDetails.startDate ?? new Date())} - {displayDateNumerical(
                 series.eventDetails.endDate ?? new Date(),
               )}
             </p>
             <p class="italic font-medium secondary-text">
-              {displayTime(series.eventDetails.startDate)}
+              {displayTime(series.eventDetails.startDate ?? new Date())}
             </p>
             <p class="italic font-medium secondary-text">
               Vehicle Class: {series.eventDetails.vehicleClass}

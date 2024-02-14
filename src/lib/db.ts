@@ -134,7 +134,6 @@ export default {
         is_series: publicEvent.isSeries,
         id: publicEvent.id,
         end_date: publicEvent.endDate,
-        discord_server: publicEvent.discordServer,
         event_info: publicEvent.eventInfo,
         series: publicEvent.series,
         track: publicEvent.track,
@@ -208,20 +207,50 @@ export default {
       return leagues;
     },
     async addSingleEvent(event: LeagueEvent, leagueLink: string) {
+      let events: LeagueEvent[] = [];
+      await supabase
+        .from('leagues')
+        .select('*')
+        .eq('leagueLink', leagueLink)
+        .single()
+        .then(
+          (data) => {
+            events = data.data.singleEvents;
+          },
+          (error) => {
+            return error;
+          },
+        );
+      events.push(event);
       const data = await supabase
         .from('leagues')
         .update({
-          singleEvents: [event],
+          singleEvents: events,
         })
         .eq('leagueLink', leagueLink);
 
       return data;
     },
     async addSeries(event: LeagueSeries, leagueLink: string) {
+      let series: LeagueSeries[] = [];
+      await supabase
+        .from('leagues')
+        .select('*')
+        .eq('leagueLink', leagueLink)
+        .single()
+        .then(
+          (data) => {
+            series = data.data.seriesEvents;
+          },
+          (error) => {
+            return error;
+          },
+        );
+      series.push(event);
       const data = await supabase
         .from('leagues')
         .update({
-          seriesEvents: [event],
+          seriesEvents: series,
         })
         .eq('leagueLink', leagueLink);
 

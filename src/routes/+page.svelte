@@ -19,6 +19,7 @@
   import ChevronDown from '@rgossiaux/svelte-heroicons/outline/ChevronDown';
   import { goto } from '$app/navigation';
   import { storedUser } from '$lib/stores';
+  import { addToast } from '$lib/stores';
 
   const plugins = [DayGrid, TimeGrid];
   export let data: PageData;
@@ -27,7 +28,7 @@
 
   let ec: Calendar;
   let events: CalendarEvents[] = [];
-  let user: User;
+  let user: User | null;
   let clientWidth: number;
   let view: string = 'timeGridWeek';
 
@@ -122,7 +123,6 @@
     let tempEventList: CalendarEvents[] = [];
     await db.publicEventsList.all().then((eventList) => {
       if (eventList) {
-        console.log(eventList);
         eventList.forEach((publicEvent: ServerEvent) => {
           const formattedDateString = publicEvent.start_date?.toLocaleString('en-US', {
               timeZone: timezone,
@@ -159,7 +159,7 @@
                   id: publicEvent.id + i,
                   start: new Date(formattedDateString),
                   end: new Date(modifiedDateString),
-                  title: publicEvent.series + publicEvent.leagueName,
+                  title: publicEvent.series + ' - ' + publicEvent.leagueName,
                   extendedProps: {
                     leagueLink: publicEvent.leagueLink,
                   },
@@ -278,7 +278,6 @@
   }
 
   function linkToLeague(e: any) {
-    console.log(e.event.extendedProps);
     goto('/league/' + e.event.extendedProps.leagueLink);
   }
 
@@ -287,6 +286,13 @@
       const { error } = await supabase.auth.signOut();
       if (error) {
         throw new Error(error.message);
+      } else {
+        addToast({
+          id: Math.floor(Math.random() * 1000),
+          message: 'You have been successfully logged out.',
+          type: 'success',
+        });
+        user = null;
       }
     } catch (error: any) {
       console.error('Error logging out:', error.message);
@@ -313,12 +319,15 @@
     open={showLoginModal}
     {isLoginMode}
     on:close={async (data) => {
-      showLoginModal = false;
-      console.log(data.detail.user);
-      user = data.detail.user;
-      ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
-      joinedLeagues = (await db.leagues.findJoined(user.email ?? '', user.id)) ?? [];
-      checkUsernameOnList();
+      if (user) {
+        showLoginModal = false;
+        user = data.detail.user;
+        ownedLeagues = (await db.leagues.findOwned(user?.id ?? '')) ?? [];
+        joinedLeagues = (await db.leagues.findJoined(user?.email ?? '', user?.id ?? '')) ?? [];
+        checkUsernameOnList();
+      } else {
+        return;
+      }
     }}
     on:forgotPassword={() => {
       showLoginModal = false;
@@ -326,7 +335,7 @@
     }}
   />
 {/if}
-{#if showLeagueAddModal}
+{#if showLeagueAddModal && user}
   <CreateLeagueModal
     open={showLeagueAddModal}
     on:close={() => (showLeagueAddModal = false)}
