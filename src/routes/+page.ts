@@ -1,4 +1,4 @@
-import db, { supabase } from '$lib/db.js';
+import db from '$lib/db.js';
 
 /** @type {import('./$types').PageLoad} */
 export async function load() {

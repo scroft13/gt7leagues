@@ -10,10 +10,9 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   }
   if ($$props.data === void 0 && $$bindings.data && data !== void 0)
     $$bindings.data(data);
-  {
-    console.log(leagueInfo, seriesInfo);
-  }
-  return `${escape(data.seriesName)}`;
+  return `${escape(data.seriesName)}
+${escape(data)}
+${escape(seriesInfo)}`;
 });
 export {
   Page as default

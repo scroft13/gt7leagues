@@ -8,7 +8,6 @@
   import type { League } from '$lib/shared.js';
 
   export let data;
-  console.log(data);
 
   let imageData: Blob | undefined = undefined;
   let ownedLeagues: League[] = [];
@@ -16,18 +15,26 @@
   let leagues: League[] = [];
 
   onMount(async () => {
-    ownedLeagues = (await db.leagues.findOwned($storedUser?.user_id ?? '')) ?? [];
+    ownedLeagues = (await db.leagues.findOwned(data.userInfo.user_id ?? '')) ?? [];
     joinedLeagues =
-      (await db.leagues.findJoined($storedUser?.email ?? '', $storedUser?.user_id ?? '')) ?? [];
+      (await db.leagues.findJoined(data.userInfo.username ?? '', data.userInfo.user_id ?? '')) ??
+      [];
     leagues = [...ownedLeagues, ...joinedLeagues];
-    const image = await supabase.storage.from('userImages').download($storedUser?.imageUrl ?? '');
-    if (image.error) {
-      console.log(image.error);
-    } else {
-      imageData = image.data;
+    if (data.userInfo.imageUrl) {
+      const image = await supabase.storage
+        .from('userImages')
+        .download(data.userInfo.imageUrl ?? '');
+      if (image.error) {
+        throw image.error;
+      } else {
+        imageData = image.data;
+      }
     }
   });
 
+  function changeImage() {
+    if (data.isCurrentUser) showImageUpload = true;
+  }
   function createObjectURL(blob: Blob) {
     return URL.createObjectURL(new Blob([blob]));
   }
@@ -35,11 +42,15 @@
 </script>
 
 {#if showImageUpload}
-  <ImageUploadModal open={showImageUpload} userId={$storedUser?.user_id ?? ''} />
+  <ImageUploadModal
+    open={showImageUpload}
+    userId={$storedUser?.user_id ?? ''}
+    on:close={() => (showImageUpload = false)}
+  />
 {/if}
 <div class="mx-4 lg:mx-16 xl:mx-40">
-  <div class="flex justify-center items-center gap-x-8">
-    <div class="relative">
+  <div class="flex justify-evenly items-center gap-x-8 mb-4">
+    <button on:click={() => changeImage()} class="relative">
       {#if imageData}
         <img src={createObjectURL(imageData)} alt={'User Image'} class="rounded-full w-20 h-20" />
       {:else}
@@ -49,18 +60,24 @@
       {/if}
       <div class="absolute -top-3 -right-3">
         {#if data.isCurrentUser}
-          <button on:click={() => (showImageUpload = true)}>
+          <div>
             <Fa icon={faPaintbrush} primaryColor={'gray'} />
-          </button>
+          </div>
         {/if}
       </div>
-    </div>
-    <p>{$storedUser?.username}</p>
+    </button>
+    <p class="text-3xl font-semibold secondary-text">{data.userInfo.username}</p>
   </div>
   <div>
-    <p>Current Leagues</p>
-    {#each leagues as league}
-      <a href={'/league/' + league.leagueLink}> {league.leagueName}</a>
-    {/each}
+    <div class="flex flex-col gap-1">
+      <p class="text-2xl font-semibold main-text">Current Leagues</p>
+      <div class="flex flex-col gap-2">
+        {#each leagues as league}
+          <div>
+            <a class="secondary-text" href={'/league/' + league.leagueLink}> {league.leagueName}</a>
+          </div>
+        {/each}
+      </div>
+    </div>
   </div>
 </div>

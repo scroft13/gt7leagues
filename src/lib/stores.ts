@@ -113,7 +113,7 @@ async function updateEvents(): Promise<CalendarEvents[]> {
 
 const userStore: UserInfo | null = await getCurrentUser();
 
-async function getCurrentUser() {
+export async function getCurrentUser(): Promise<UserInfo | null> {
   const { data } = await supabase.auth.getSession();
   if (data.session) {
     const user = await supabase.auth.getUser();

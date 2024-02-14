@@ -18,7 +18,7 @@
   import ChevronUp from '@rgossiaux/svelte-heroicons/outline/ChevronUp';
   import ChevronDown from '@rgossiaux/svelte-heroicons/outline/ChevronDown';
   import { goto } from '$app/navigation';
-  import { storedUser } from '$lib/stores';
+  import { getCurrentUser, storedUser } from '$lib/stores';
   import { addToast } from '$lib/stores';
 
   const plugins = [DayGrid, TimeGrid];
@@ -295,7 +295,7 @@
         user = null;
       }
     } catch (error: any) {
-      console.error('Error logging out:', error.message);
+      throw error;
     }
   }
 
@@ -320,6 +320,18 @@
     {isLoginMode}
     on:close={async (data) => {
       if (user) {
+        const currentUser = await getCurrentUser();
+        if (currentUser) {
+          storedUser.update(() => {
+            return {
+              email: currentUser.email,
+              created_at: currentUser.created_at,
+              imageUrl: currentUser.imageUrl,
+              user_id: currentUser.user_id,
+              username: currentUser.username,
+            };
+          });
+        }
         showLoginModal = false;
         user = data.detail.user;
         ownedLeagues = (await db.leagues.findOwned(user?.id ?? '')) ?? [];
@@ -357,7 +369,7 @@
 {/if}
 
 <div id="main-div" bind:clientWidth>
-  <div class="flex gap-4 flex-col ">
+  <div class="flex gap-4 flex-col">
     <p class="text-4xl text-center">Welcome to GT7 Leagues</p>
     {#if loading}
       <div class="w-full">
@@ -433,7 +445,7 @@
           {/if}
         </div>
         <button
-          class="w-10 h-10 place-self-end -mt-4 mr-8 lg:mr-20 "
+          class="w-10 h-10 place-self-end -mt-4 mr-8 lg:mr-20"
           on:click={() => {
             showMoreBlurb = !showMoreBlurb;
           }}

@@ -15,8 +15,14 @@ export async function load({ params }) {
     if (storedUserUsername === params.username) {
       isCurrentUser = true;
     }
+    const userInfo = await supabase
+      .from('userInfo')
+      .select('*')
+      .eq('username', params.username)
+      .single();
 
     return {
+      userInfo: userInfo.data,
       isCurrentUser,
     };
   }

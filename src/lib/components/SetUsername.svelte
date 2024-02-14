@@ -70,7 +70,7 @@
         close();
       }
     } catch (error: any) {
-      console.error('Error logging out:', error.message);
+      throw error;
     }
   }
 </script>

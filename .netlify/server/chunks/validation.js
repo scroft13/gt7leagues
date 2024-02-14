@@ -1,10 +1,5 @@
 import * as yup from "yup";
-function arrayOfUndefs(length) {
-  return new Array(length).fill(void 0);
-}
-function compactArray(arr) {
-  return arr.filter((obj) => obj !== void 0 && obj !== null);
-}
+import { b as arrayOfUndefs, c as compactArray } from "./stores.js";
 const apiConnectorDictionary = {
   UsStates: [
     "Alabama",
@@ -360,6 +355,23 @@ const allCountries = [
   { name: "Zambia", code: "ZM" },
   { name: "Zimbabwe", code: "ZW" }
 ];
+function displayDateNumerical(date) {
+  const month = new Date(date).getMonth() + 1 < 10 ? "0" + (new Date(date).getMonth() + 1).toString() : new Date(date).getMonth() + 1;
+  const day = new Date(date).getDate() < 10 ? "0" + new Date(date).getDate().toString() : new Date(date).getDate();
+  return month + "/" + day + "/" + new Date(date).getFullYear();
+}
+function displayTime(date) {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const formattedDateString = date.toLocaleString("en-US", {
+    timeZone: timezone
+  });
+  const twentyFourHours = new Date(formattedDateString).getHours();
+  const actualMinutes = new Date(formattedDateString).getMinutes();
+  const hours = twentyFourHours > 12 ? (twentyFourHours - 12).toString() : twentyFourHours.toString();
+  const minutes = actualMinutes < 10 ? "0" + actualMinutes.toString() : actualMinutes.toString();
+  const amPm = twentyFourHours > 12 ? "p.m." : "a.m.";
+  return hours + ":" + minutes + " " + amPm;
+}
 function dateToServerString(date) {
   const splitTerm = date.split("-");
   const year = splitTerm[0], month = splitTerm[1], day = splitTerm[2];
@@ -569,3 +581,33 @@ yup.addMethod(yup.string, "verifyCheckInDate", function(errorMessage) {
     }
   });
 });
+yup.addMethod(yup.string, "valueNotUsed", function(values, errorMessage) {
+  return this.test(`valueNotUsed`, errorMessage, function(value) {
+    const { path, createError } = this;
+    if (!value) {
+      return true;
+    }
+    if (value && values.find((x) => x == value) != void 0) {
+      return createError({ path, message: "Your username has already been taken." });
+    } else {
+      return true;
+    }
+  });
+});
+yup.addMethod(yup.string, "xDigitsOnly", function(maxLength, errorMessage) {
+  return this.test(`xDigitsOnly`, errorMessage, function(value) {
+    const { path, createError } = this;
+    if (!value) {
+      return true;
+    }
+    if (value && value.length != maxLength) {
+      return createError({ path, message: "This must be three digits exactly." });
+    } else {
+      return true;
+    }
+  });
+});
+export {
+  displayTime as a,
+  displayDateNumerical as d
+};

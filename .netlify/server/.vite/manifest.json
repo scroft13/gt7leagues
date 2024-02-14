@@ -44,8 +44,19 @@
       "_index3.js"
     ]
   },
+  "_stores.js": {
+    "file": "chunks/stores.js",
+    "imports": [
+      "_index2.js",
+      "_db.js",
+      "_index3.js"
+    ]
+  },
   "_validation.js": {
-    "file": "chunks/validation.js"
+    "file": "chunks/validation.js",
+    "imports": [
+      "_stores.js"
+    ]
   },
   "node_modules/@sveltejs/kit/src/runtime/server/index.js": {
     "file": "index.js",
@@ -67,18 +78,19 @@
     "src": "src/routes/+error.svelte"
   },
   "src/routes/+layout.css": {
-    "file": "_app/immutable/assets/_layout.5e00d96e.css",
+    "file": "_app/immutable/assets/_layout.1b704ffa.css",
     "src": "src/routes/+layout.css"
   },
   "src/routes/+layout.svelte": {
     "css": [
-      "_app/immutable/assets/_layout.5e00d96e.css"
+      "_app/immutable/assets/_layout.1b704ffa.css"
     ],
     "file": "entries/pages/_layout.svelte.js",
     "imports": [
       "_index3.js",
-      "_index2.js",
-      "_common.js"
+      "_stores.js",
+      "_common.js",
+      "_index2.js"
     ],
     "isEntry": true,
     "src": "src/routes/+layout.svelte"
@@ -96,7 +108,8 @@
       "_index3.js",
       "_db.js",
       "_common.js",
-      "_validation.js"
+      "_validation.js",
+      "_stores.js"
     ],
     "isEntry": true,
     "src": "src/routes/+page.svelte"
@@ -138,7 +151,8 @@
       "_index3.js",
       "_common.js",
       "_validation.js",
-      "_db.js"
+      "_db.js",
+      "_stores.js"
     ],
     "isEntry": true,
     "src": "src/routes/league/[league_name]/+page.svelte"
@@ -177,20 +191,49 @@
     "isEntry": true,
     "src": "src/routes/league/[league_name]/noLeague/+page.svelte"
   },
-  "src/routes/user/[user_id]/+page.svelte": {
-    "file": "entries/pages/user/_user_id_/_page.svelte.js",
+  "src/routes/password-reset/+page.svelte": {
+    "file": "entries/pages/password-reset/_page.svelte.js",
     "imports": [
-      "_index3.js"
+      "_index3.js",
+      "_index2.js",
+      "_stores.js",
+      "_validation.js",
+      "_db.js"
     ],
     "isEntry": true,
-    "src": "src/routes/user/[user_id]/+page.svelte"
+    "src": "src/routes/password-reset/+page.svelte"
   },
-  "src/routes/user/[user_id]/+page.ts": {
-    "file": "entries/pages/user/_user_id_/_page.ts.js",
+  "src/routes/password-reset/+page.ts": {
+    "file": "entries/pages/password-reset/_page.ts.js",
+    "isEntry": true,
+    "src": "src/routes/password-reset/+page.ts"
+  },
+  "src/routes/user/[username]/+page.css": {
+    "file": "_app/immutable/assets/_page.32503cb2.css",
+    "src": "src/routes/user/[username]/+page.css"
+  },
+  "src/routes/user/[username]/+page.svelte": {
+    "css": [
+      "_app/immutable/assets/_page.32503cb2.css"
+    ],
+    "file": "entries/pages/user/_username_/_page.svelte.js",
     "imports": [
+      "_index3.js",
+      "_db.js",
+      "_stores.js",
+      "_common.js"
+    ],
+    "isEntry": true,
+    "src": "src/routes/user/[username]/+page.svelte"
+  },
+  "src/routes/user/[username]/+page.ts": {
+    "file": "entries/pages/user/_username_/_page.ts.js",
+    "imports": [
+      "_db.js",
+      "_stores.js",
       "_index.js"
     ],
     "isEntry": true,
-    "src": "src/routes/user/[user_id]/+page.ts"
+    "src": "src/routes/user/[username]/+page.ts"
   }
 }

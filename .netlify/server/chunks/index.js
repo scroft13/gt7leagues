@@ -27,6 +27,16 @@ class Redirect {
     this.location = location;
   }
 }
+class NotFound extends Error {
+  /**
+   * @param {string} pathname
+   */
+  constructor(pathname) {
+    super();
+    this.status = 404;
+    this.message = `Not found: ${pathname}`;
+  }
+}
 class ActionFailure {
   /**
    * @param {number} status
@@ -76,6 +86,7 @@ function text(body, init) {
 export {
   ActionFailure as A,
   HttpError as H,
+  NotFound as N,
   Redirect as R,
   error as e,
   json as j,

@@ -26,7 +26,7 @@
         password: formCopy.confirmPassword,
       });
     } catch (error: any) {
-      console.error('Error sending password reset email:', error.message);
+      throw error;
     } finally {
       addToast({
         type: 'success',

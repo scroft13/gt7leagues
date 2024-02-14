@@ -9,6 +9,9 @@ const config: UserConfig = {
       compiler: 'svelte',
     }),
   ],
+  build: {
+    target: 'ES2022',
+  },
 };
 
 export default config;
