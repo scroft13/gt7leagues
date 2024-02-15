@@ -6,6 +6,7 @@
   import ImageUploadModal from '$lib/components/ImageUploadModal.svelte';
   import { storedUser } from '$lib/stores.js';
   import type { League } from '$lib/shared.js';
+  import ReplyMessageModal from '$lib/components/ReplyMessageModal.svelte';
 
   export let data;
 
@@ -13,6 +14,8 @@
   let ownedLeagues: League[] = [];
   let joinedLeagues: League[] = [];
   let leagues: League[] = [];
+  let openMessageModal = false;
+  let showImageUpload = false;
 
   onMount(async () => {
     ownedLeagues = (await db.leagues.findOwned(data.userInfo.user_id ?? '')) ?? [];
@@ -38,7 +41,12 @@
   function createObjectURL(blob: Blob) {
     return URL.createObjectURL(new Blob([blob]));
   }
-  let showImageUpload = false;
+
+  function sendMessage() {
+    openMessageModal = true;
+  }
+
+  $: console.log(data.userInfo);
 </script>
 
 {#if showImageUpload}
@@ -46,6 +54,14 @@
     open={showImageUpload}
     userId={$storedUser?.user_id ?? ''}
     on:close={() => (showImageUpload = false)}
+  />
+{/if}
+{#if openMessageModal}
+  <ReplyMessageModal
+    open={openMessageModal}
+    on:close={() => {
+      openMessageModal = false;
+    }}
   />
 {/if}
 <div class="mx-4 lg:mx-16 xl:mx-40">
@@ -70,7 +86,9 @@
   </div>
   <div>
     <div class="flex flex-col gap-1">
-      <p class="text-2xl font-semibold main-text">Current Leagues</p>
+      <p class="text-xl font-semibold main-text text-center lg:text-left w-full mt-8">
+        Current Leagues
+      </p>
       <div class="flex flex-col gap-2">
         {#each leagues as league}
           <div>
@@ -78,6 +96,20 @@
           </div>
         {/each}
       </div>
+    </div>
+    <div>
+      {#if data.isCurrentUser}
+        <p class="text-xl font-semibold main-text text-center lg:text-left w-full mt-8">Messages</p>
+      {:else}
+        <div class="flex items-center mt-6 justify-center lg:justify-start">
+          <button on:click={() => sendMessage()} class="btn-primary">Send Message</button>
+        </div>
+        {#if data.userInfo.receivedMessages}
+          {#each data.userInfo.receivedMessages as message}
+            {message.body}
+          {/each}
+        {/if}
+      {/if}
     </div>
   </div>
 </div>

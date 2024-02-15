@@ -329,6 +329,8 @@
               imageUrl: currentUser.imageUrl,
               user_id: currentUser.user_id,
               username: currentUser.username,
+              sentMessages: [],
+              receivedMessages: [],
             };
           });
         }

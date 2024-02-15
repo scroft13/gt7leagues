@@ -5,7 +5,7 @@
   import LabeledTextarea from '$lib/components/forms/labeledComponents/LabeledTextarea.svelte';
   import SubmitButton from '$lib/components/forms/SubmitButton.svelte';
   import yup from '$lib/components/forms/validation';
-  import type { Message, SentMessage } from '$lib/shared';
+  // import type { Message, SentMessage } from '$lib/shared';
   import { addToast } from '$lib/stores';
   import {
     Dialog,
@@ -17,7 +17,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { createForm } from 'svelte-forms-lib';
 
-  export let replyMessage: { message: Message | undefined; sentMessage: SentMessage | undefined };
+  // export let replyMessage: { message: Message | undefined; sentMessage: SentMessage | undefined };
   export let open: boolean;
   let stillOpen = true;
 
@@ -45,38 +45,38 @@
   let openConfirmationModal = false;
 
   onMount(() => {
-    setTimeout(() => {
-      if (stillOpen && replyMessage.message) {
-        account?.updateMessageAsViewed(replyMessage.message.id);
-        dispatch('markViewed', replyMessage.message);
-      }
-    }, 3000);
+    // setTimeout(() => {
+    //   if (stillOpen && replyMessage.message) {
+    //     account?.updateMessageAsViewed(replyMessage.message.id);
+    //     dispatch('markViewed', replyMessage.message);
+    //   }
+    // }, 3000);
   });
 
   async function sendMessage(messageForm: FormData) {
-    if (account) {
-      if (replyMessage.message) {
-        await account
-          .sendMessage({
-            body: messageForm.message,
-            replyId: replyMessage?.message.id,
-          })
-          .then(() => setToast());
-        if (replyMessage.message.viewed == false) {
-          account.updateMessageAsViewed(replyMessage.message.id);
-          dispatch('markViewed', replyMessage.message);
-        }
-        close();
-      } else if (replyMessage.sentMessage) {
-        await account
-          .sendFollowUpMessage({
-            body: messageForm.message,
-            messageId: replyMessage.sentMessage?.id,
-          })
-          .then(() => setToast());
-        close();
-      }
-    }
+    // if (account) {
+    //   if (replyMessage.message) {
+    //     await account
+    //       .sendMessage({
+    //         body: messageForm.message,
+    //         replyId: replyMessage?.message.id,
+    //       })
+    //       .then(() => setToast());
+    //     if (replyMessage.message.viewed == false) {
+    //       account.updateMessageAsViewed(replyMessage.message.id);
+    //       dispatch('markViewed', replyMessage.message);
+    //     }
+    //     close();
+    //   } else if (replyMessage.sentMessage) {
+    //     await account
+    //       .sendFollowUpMessage({
+    //         body: messageForm.message,
+    //         messageId: replyMessage.sentMessage?.id,
+    //       })
+    //       .then(() => setToast());
+    //     close();
+    //   }
+    // }
   }
 
   function setToast() {
@@ -129,10 +129,8 @@
       class="w-full"
     >
       <div
-        class="mx-4 transform rounded-md modal-background main-text overflow-y-auto mb-3 mt-12 lg:mt-[6rem] {replyMessage.message ||
-        replyMessage.sentMessage
-          ? 'lg:mx-16 xl:mx-40'
-          : 'lg:w-1/2'}"
+        class="mx-4 transform rounded-md modal-background main-text overflow-y-auto mb-3 mt-12 lg:mt-[6rem]
+        lg:mx-16 xl:mx-40 lg:w-1/2"
       >
         <div class="flex justify-end w-full mt-2">
           <button on:click|preventDefault={checkClose} class="w-10 h-9 p-2">
@@ -142,7 +140,7 @@
         </div>
 
         <div class="mx-8 lg:mx-16">
-          <Form context={{ ...formState, schema: formSchema }} class="standard1">
+          <!-- <Form context={{ ...formState, schema: formSchema }} class="standard1">
             <h4>{replyMessage.message ? 'Send Reply' : 'Send Message'}</h4>
             <hr />
             <div>
@@ -199,7 +197,7 @@
                 loading={false}
               />
             </div>
-          </Form>
+          </Form> -->
         </div>
       </div>
       {#if openConfirmationModal}

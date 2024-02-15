@@ -25,6 +25,8 @@ export type UserInfo = {
   username: string;
   email: string;
   imageUrl: string;
+  sentMessages: SentMessage[];
+  receivedMessages: Message[];
 };
 
 export type CalendarEvents = {
