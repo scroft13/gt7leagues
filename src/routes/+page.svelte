@@ -19,7 +19,6 @@
   import ChevronDown from '@rgossiaux/svelte-heroicons/outline/ChevronDown';
   import { goto } from '$app/navigation';
   import { getCurrentUser, storedUser } from '$lib/stores';
-  import { addToast } from '$lib/stores';
 
   const plugins = [DayGrid, TimeGrid];
   export let data: PageData;
@@ -281,24 +280,6 @@
     goto('/league/' + e.event.extendedProps.leagueLink);
   }
 
-  async function logout(): Promise<void> {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw new Error(error.message);
-      } else {
-        addToast({
-          id: Math.floor(Math.random() * 1000),
-          message: 'You have been successfully logged out.',
-          type: 'success',
-        });
-        user = null;
-      }
-    } catch (error: any) {
-      throw error;
-    }
-  }
-
   async function checkUsernameOnList() {
     if (user) {
       const username = await db.currentUser.currentUsername(user.id);
@@ -340,6 +321,7 @@
         joinedLeagues = (await db.leagues.findJoined(user?.email ?? '', user?.id ?? '')) ?? [];
         checkUsernameOnList();
       } else {
+        showLoginModal = false;
         return;
       }
     }}
@@ -408,7 +390,6 @@
             <button class="btn-primary" on:click={() => (showLeagueAddModal = true)}>
               Create League
             </button>
-            <button class="btn-primary" on:click={logout}> Log Out</button>
           </div>
         </div>
       {:else}

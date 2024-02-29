@@ -9,7 +9,7 @@
   import ChevronDown from '@rgossiaux/svelte-heroicons/solid/ChevronDown';
   import ChevronUp from '@rgossiaux/svelte-heroicons/solid/ChevronUp';
   import { goto } from '$app/navigation';
-  import NewMessageModal from '$lib/components/NewMessageModal.svelte';
+  import NewMessageModal from '$lib/components/leagueMessageModal.svelte';
   import { marked } from 'marked';
   import { displayDateNumerical, displayTime } from '$lib/formatters';
 
@@ -125,7 +125,7 @@
       {#each leagueInfo.seriesEvents as series}
         <a
           href="/league/{leagueLink}/{series.name}"
-          class="flex w-full gap-2 justify-evenly flex-col lg:flex-row border lg:border-0 p-2 lg:p-0 rounded shadow-md  lg:shadow-none"
+          class="flex w-full gap-2 justify-evenly flex-col lg:flex-row border lg:border-0 p-2 lg:p-0 rounded shadow-md lg:shadow-none"
         >
           <p class="font-bold text-lg">{series.name}</p>
           <div class="flex flex-col gap-[1px]">

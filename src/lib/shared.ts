@@ -25,7 +25,7 @@ export type UserInfo = {
   username: string;
   email: string;
   imageUrl: string;
-  sentMessages: SentMessage[];
+  sentMessages: Message[];
   receivedMessages: Message[];
 };
 
@@ -126,15 +126,9 @@ export type LeagueSeries = {
 export interface Message {
   body: string;
   createdAt: Date;
-  id: number;
+  id?: number;
   sender: string;
   viewed: boolean;
-}
-
-export interface SentMessage {
-  body: string;
-  createdAt: Date;
-  id: number;
   receiver: string;
 }
 

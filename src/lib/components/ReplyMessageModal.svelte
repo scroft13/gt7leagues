@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { page } from '$app/stores';
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
   import Form from '$lib/components/forms/Form.svelte';
   import LabeledTextarea from '$lib/components/forms/labeledComponents/LabeledTextarea.svelte';
   import SubmitButton from '$lib/components/forms/SubmitButton.svelte';
   import yup from '$lib/components/forms/validation';
-  // import type { Message, SentMessage } from '$lib/shared';
-  import { addToast } from '$lib/stores';
+  import type { Message } from '$lib/shared';
+  // import { addToast } from '$lib/stores';
   import {
     Dialog,
     DialogOverlay,
@@ -17,13 +16,15 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { createForm } from 'svelte-forms-lib';
 
-  // export let replyMessage: { message: Message | undefined; sentMessage: SentMessage | undefined };
+  export let initialMessage: {
+    replyMessage: Message | undefined;
+    followUpMessage: Message | undefined;
+  };
   export let open: boolean;
   let stillOpen = true;
 
   type FormData = yup.InferType<typeof formSchema>;
 
-  const account = $page.data.account;
   const dispatch = createEventDispatcher();
 
   const formSchema = yup.object().shape({
@@ -45,47 +46,40 @@
   let openConfirmationModal = false;
 
   onMount(() => {
-    // setTimeout(() => {
-    //   if (stillOpen && replyMessage.message) {
-    //     account?.updateMessageAsViewed(replyMessage.message.id);
-    //     dispatch('markViewed', replyMessage.message);
-    //   }
-    // }, 3000);
+    setTimeout(() => {
+      //   //todo set mark as read
+      // if (stillOpen && initialMessage.message) {
+      //   // account?.updateMessageAsViewed(replyMessage.message.id);
+      //   dispatch('markViewed', initialMessage.message);
+      // }
+    }, 3000);
   });
 
   async function sendMessage(messageForm: FormData) {
-    // if (account) {
-    //   if (replyMessage.message) {
-    //     await account
-    //       .sendMessage({
-    //         body: messageForm.message,
-    //         replyId: replyMessage?.message.id,
-    //       })
-    //       .then(() => setToast());
-    //     if (replyMessage.message.viewed == false) {
-    //       account.updateMessageAsViewed(replyMessage.message.id);
-    //       dispatch('markViewed', replyMessage.message);
-    //     }
-    //     close();
-    //   } else if (replyMessage.sentMessage) {
-    //     await account
-    //       .sendFollowUpMessage({
-    //         body: messageForm.message,
-    //         messageId: replyMessage.sentMessage?.id,
-    //       })
-    //       .then(() => setToast());
-    //     close();
-    //   }
+    console.log(messageForm);
+    console.log(initialMessage);
+    // if (initialMessage.replyMessage) {
+    //   await db.messages
+    //     .sendUserMessage({
+    //       body: messageForm.message,
+    //       createdAt: new Date(),
+    //       receiver: initialMessage.replyMessage.sender,
+    //       sender: initialMessage.replyMessage.receiver,
+    //       viewed: false,
+    //     })
+    //     .then(() => {
+    //       setToast();
+    //     });
     // }
   }
 
-  function setToast() {
-    addToast({
-      id: Math.floor(Math.random() * 1000),
-      message: 'Message Sent!',
-      type: 'success',
-    });
-  }
+  // function setToast() {
+  //   addToast({
+  //     id: Math.floor(Math.random() * 1000),
+  //     message: 'Message Sent!',
+  //     type: 'success',
+  //   });
+  // }
 
   function checkClose() {
     if ($isModified) {
@@ -140,40 +134,40 @@
         </div>
 
         <div class="mx-8 lg:mx-16">
-          <!-- <Form context={{ ...formState, schema: formSchema }} class="standard1">
-            <h4>{replyMessage.message ? 'Send Reply' : 'Send Message'}</h4>
+          <Form context={{ ...formState, schema: formSchema }} class="standard1">
+            <h4>{initialMessage.replyMessage ? 'Send Reply' : 'Send Message'}</h4>
             <hr />
             <div>
-              {#if replyMessage.message}
+              {#if initialMessage.replyMessage}
                 <fieldset>
                   <div class="lg:mt-3">
                     <p>From:</p>
                     <div class=" max-h-48 my-2 overflow-y-auto">
                       <p class="secondary-text">
-                        {replyMessage.message.sender}
+                        {initialMessage.replyMessage.sender}
                       </p>
                     </div>
                     <p>Original Message:</p>
                     <div class="pr-2 max-h-48 mt-2 overflow-y-auto">
                       <p class="secondary-text">
-                        {replyMessage?.message.body}
+                        {initialMessage?.replyMessage.body}
                       </p>
                     </div>
                   </div>
                 </fieldset>
-              {:else if replyMessage.sentMessage}
+              {:else if initialMessage.followUpMessage}
                 <fieldset>
                   <div class="lg:mt-3">
                     <p>Message to:</p>
                     <div class="max-h-64 my-2 overflow-y-auto">
                       <p class="secondary-text">
-                        {replyMessage.sentMessage.receiver}
+                        {initialMessage.followUpMessage.receiver}
                       </p>
                     </div>
                     <p>Original Message:</p>
                     <div class="pr-2 max-h-64 mt-2 overflow-y-auto">
                       <p class="secondary-text">
-                        {replyMessage.sentMessage.body}
+                        {initialMessage.followUpMessage.body}
                       </p>
                     </div>
                   </div>
@@ -184,7 +178,7 @@
                 <div>
                   <LabeledTextarea
                     name={'message'}
-                    label={replyMessage.message ? 'Reply Message:' : 'Follow-Up Message:'}
+                    label={initialMessage.replyMessage ? 'Reply Message:' : 'Follow-Up Message:'}
                   />
                 </div>
               </fieldset>
@@ -192,12 +186,12 @@
 
             <div class="wide footer">
               <SubmitButton
-                buttonName={replyMessage.message ? 'Send Reply' : 'Send Follow-Up'}
+                buttonName={initialMessage.replyMessage ? 'Send Reply' : 'Send Follow-Up'}
                 disabled={!$isValid || !$isModified}
                 loading={false}
               />
             </div>
-          </Form> -->
+          </Form>
         </div>
       </div>
       {#if openConfirmationModal}
