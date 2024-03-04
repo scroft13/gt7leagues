@@ -2,6 +2,9 @@
   "name": "GT7 Leagues",
   "version": "0.0.1",
   "private": true,
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "scripts": {
     "dev": "vite dev --host --port 6660",
     "build": "vite build",

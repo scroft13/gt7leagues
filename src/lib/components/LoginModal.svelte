@@ -52,10 +52,6 @@
           supabase.auth
             .signInWithPassword({ email: formData.email, password: formData.password })
             .then(async ({ data: { session }, error }) => {
-              let userExists = await db.currentUser.checkIfUserExistsInDb(session?.user.id ?? '');
-              if (session && !userExists === true) {
-                db.currentUser.create(formData.email, session.user.id);
-              }
               if (error) {
                 return addToast({
                   message: error.message,
@@ -64,6 +60,10 @@
                 });
               } else {
                 if (session) {
+                  let userExists = await db.currentUser.checkIfUserExistsInDb(session.user.id);
+                  if (!userExists === true) {
+                    db.currentUser.create(formData.email, session.user.id);
+                  }
                   user = session.user;
                   return close();
                 }

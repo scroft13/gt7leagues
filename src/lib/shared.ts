@@ -24,6 +24,9 @@ export type UserInfo = {
   user_id: string;
   username: string;
   email: string;
+  imageUrl: string;
+  sentMessages: Message[];
+  receivedMessages: Message[];
 };
 
 export type CalendarEvents = {
@@ -88,6 +91,13 @@ export type Post = {
   date: Date;
 };
 
+export type LeagueInfo = {
+  leagueName: string;
+  leagueAcronym: string;
+  id: string;
+  leagueLink: string;
+};
+
 export type League = {
   leagueName: string;
   leagueAcronym: string;
@@ -116,15 +126,9 @@ export type LeagueSeries = {
 export interface Message {
   body: string;
   createdAt: Date;
-  id: number;
+  id?: number;
   sender: string;
   viewed: boolean;
-}
-
-export interface SentMessage {
-  body: string;
-  createdAt: Date;
-  id: number;
   receiver: string;
 }
 

@@ -5,7 +5,11 @@ async function load({ url }) {
   const type = extractTypeFromURL(fetchUrl);
   const email = url.searchParams.get("email");
   if (token_hash && type && email) {
-    await supabase.auth.verifyOtp({ token_hash, type });
+    await supabase.auth.verifyOtp({ token_hash, type }).catch(() => {
+      return { emailConfirmed: false };
+    }).then(() => {
+      return { emailConfirmed: true };
+    });
   }
   function extractTokenFromURL(url2) {
     const queryString = url2.split("?")[1];

@@ -9,6 +9,9 @@ function blank_object() {
 function run_all(fns) {
   fns.forEach(run);
 }
+function is_function(thing) {
+  return typeof thing === "function";
+}
 function safe_not_equal(a, b) {
   return a != a ? b == b : a !== b || (a && typeof a === "object" || typeof a === "function");
 }
@@ -18,6 +21,11 @@ function subscribe(store, ...callbacks) {
   }
   const unsub = store.subscribe(...callbacks);
   return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
+}
+function get_store_value(store) {
+  let value;
+  subscribe(store, (_) => value = _)();
+  return value;
 }
 function compute_rest_props(props, keys) {
   const rest = {};
@@ -337,6 +345,7 @@ function style_object_to_string(style_object) {
   return Object.keys(style_object).filter((key) => style_object[key]).map((key) => `${key}: ${escape_attribute_value(style_object[key])};`).join(" ");
 }
 export {
+  is_function as A,
   add_attribute as a,
   createEventDispatcher as b,
   create_ssr_component as c,
@@ -348,16 +357,19 @@ export {
   spread as i,
   escape_object as j,
   getContext as k,
-  listen as l,
+  get_store_value as l,
   missing_component as m,
   null_to_empty as n,
-  onDestroy as o,
-  bubble as p,
-  prevent_default as q,
-  stop_propagation as r,
+  escape_attribute_value as o,
+  onDestroy as p,
+  listen as q,
+  bubble as r,
   setContext as s,
   tick as t,
-  noop as u,
+  prevent_default as u,
   validate_component as v,
-  safe_not_equal as w
+  stop_propagation as w,
+  noop as x,
+  safe_not_equal as y,
+  run_all as z
 };

@@ -1,15 +1,15 @@
 import { d as db } from "../../chunks/db.js";
 async function load() {
-  const username = await db.users.currentUsername();
-  console.log(username);
-  if (username) {
-    return {
-      username
-    };
-  } else
-    return {
-      username: null
-    };
+  const data = await db.currentUser.getUsernameList();
+  const usernameList = data?.map((x) => {
+    if (x) {
+      return x;
+    } else
+      return "";
+  });
+  return {
+    usernameList
+  };
 }
 export {
   load

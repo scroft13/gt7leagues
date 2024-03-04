@@ -138,3 +138,42 @@ export function pushUniqueValue(acc: string[], value: string | null) {
 }
 
 export type KeyOf<T extends object> = Extract<keyof T, string>;
+
+export function generateDatesWithInterval(startDate: Date, endDate: Date, intervalDays: number) {
+  const dates = [];
+  const currentDate = new Date(startDate);
+
+  while (currentDate <= endDate) {
+    dates.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + intervalDays);
+  }
+  return dates;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+export function generateRandomColor() {
+  // Generate random RGB values
+  const red = Math.floor(Math.random() * 256);
+  const green = Math.floor(Math.random() * 256);
+  const blue = Math.floor(Math.random() * 256);
+
+  // Calculate brightness using the formula: 0.299*R + 0.587*G + 0.114*B
+  const brightness = 0.299 * red + 0.587 * green + 0.114 * blue;
+
+  // Choose whether to make the color lighter or darker based on brightness
+  const isLightColor = brightness > 100;
+
+  // Adjust brightness to ensure good contrast with white text
+  const adjustValue = isLightColor ? -50 : 50;
+
+  // Apply the adjustment to each color component
+  const adjustedRed = clamp(red + adjustValue, 0, 255);
+  const adjustedGreen = clamp(green + adjustValue, 0, 255);
+  const adjustedBlue = clamp(blue + adjustValue, 0, 255);
+
+  // Return the RGB string
+  return `rgba(${adjustedRed}, ${adjustedGreen}, ${adjustedBlue}, .8)`;
+}

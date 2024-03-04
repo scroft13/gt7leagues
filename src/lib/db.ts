@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { writable } from 'svelte/store';
-import type { LeagueEvent, League, ServerEvent, LeagueSeries, Post } from './shared';
+import type { LeagueEvent, League, ServerEvent, LeagueSeries, Post, Message } from './shared';
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -8,13 +8,8 @@ export const supabase = createClient(
 );
 const userStore = writable();
 
-let user_id: string | undefined;
-let user_email: string;
-
 supabase.auth.getSession().then(({ data }) => {
   userStore.set(data.session?.user);
-  user_id = data.session?.user.id;
-  user_email = data.session?.user.email ?? '';
 });
 
 supabase.auth.onAuthStateChange((event, session) => {
@@ -77,7 +72,6 @@ export default {
     },
     async getUsernameList() {
       const data = await supabase.from('userInfo').select('*');
-
       if (data.data) {
         const usernameList: (string | null)[] = data.data?.map(
           (userInfo: {
@@ -90,7 +84,7 @@ export default {
           },
         );
         return usernameList;
-      }
+      } else return;
     },
     async getUserInfo(userId: string) {
       const response = await supabase
@@ -180,9 +174,9 @@ export default {
           }
         });
       });
-
       return leaguesJoined;
     },
+
     async join(leagueLink: string, username: string, role: 'Manager' | 'Racer') {
       let members: { username: string; role: 'Manager' | 'Racer' }[] = [];
       await supabase
@@ -280,6 +274,52 @@ export default {
         })
         .eq('id', leagueId);
       return leagues;
+    },
+  },
+  messages: {
+    async sendUserMessage(message: Message) {
+      // console.log(message, recipient, sender);
+      let messages: Message[] = [];
+      await supabase
+        .from('userInfo')
+        .select('*')
+        .eq('username', message.receiver)
+        .single()
+        .then(
+          (data) => {
+            messages = data.data.receivedMessages ?? [];
+          },
+          (error) => {
+            return error;
+          },
+        );
+      messages.push(message);
+      await supabase
+        .from('userInfo')
+        .update({
+          receivedMessages: messages,
+        })
+        .eq('username', message.receiver);
+      let sentMessages: Message[] = [];
+      await supabase
+        .from('userInfo')
+        .select('*')
+        .eq('username', message.sender)
+        .single()
+        .then(
+          (data) => {
+            sentMessages = data.data.sentMessages ?? [];
+          },
+          (error) => {
+            return error;
+          },
+        );
+      sentMessages.push(message);
+      const response = await supabase
+        .from('userInfo')
+        .update({ sentMessages: sentMessages })
+        .eq('username', message.sender);
+      return response;
     },
   },
 };

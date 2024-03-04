@@ -12,12 +12,20 @@
   import Form from '$lib/components/forms/Form.svelte';
   import LabeledTextarea from '$lib/components/forms/labeledComponents/LabeledTextarea.svelte';
   import SubmitButton from '$lib/components/forms/SubmitButton.svelte';
-  import { addToast, storedUser } from '$lib/stores';
+  import { addToast } from '$lib/stores';
+
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
   import db from '$lib/db';
+  import type { User } from '@supabase/supabase-js';
+  import type { League } from '$lib/shared';
 
   export let open: boolean;
-  export let recipient: string;
+  export const id: string | undefined = undefined;
+  export let type: string;
+  export let leagueInfo: League;
+  export let user: User;
+  export let username: string;
+  export let leagueRole: 'Manager' | 'Racer';
 
   type FormData = yup.InferType<typeof formSchema>;
 
@@ -31,6 +39,7 @@
       validationSchema: formSchema,
       onSubmit: async (formData: FormData) => {
         if ($isModified) {
+          console.log(formData);
           const resultData = { ...formData };
           sendMessage(resultData);
         }
@@ -41,13 +50,13 @@
   let openConfirmationModal = false;
 
   async function sendMessage(messageForm: FormData) {
-    db.messages
-      .sendUserMessage({
-        body: messageForm.message,
-        createdAt: new Date(),
-        sender: $storedUser?.username ?? '',
-        viewed: false,
-        receiver: recipient,
+    await db.leagues
+      .addPost(leagueInfo.id ?? '', {
+        date: new Date(),
+        leagueRole: leagueRole,
+        message: JSON.stringify(messageForm.message),
+        userId: user.id,
+        username: username ?? '',
       })
       .then(() => setToast());
     close();
@@ -56,7 +65,7 @@
   function setToast() {
     addToast({
       id: Math.floor(Math.random() * 1000),
-      message: 'Message Sent!',
+      message: 'Message Posted!',
       type: 'success',
     });
   }
@@ -114,7 +123,7 @@
 
         <div class="mx-8 lg:mx-16">
           <Form context={{ ...formState, schema: formSchema }} class="standard1">
-            <h4>{'Send Message'}</h4>
+            <h4>{type === 'League' ? 'Post League' : 'Send Direct'} Message</h4>
             <div class="hr-div" />
             <div class="wide">
               <fieldset>
@@ -126,7 +135,7 @@
 
             <div class="wide footer">
               <SubmitButton
-                buttonName={'Send Message'}
+                buttonName={`${type === 'League' ? 'Post League' : 'Send Direct'} Message`}
                 disabled={!$isValid || !$isModified}
                 loading={false}
               />

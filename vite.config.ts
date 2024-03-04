@@ -1,14 +1,12 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import type { UserConfig } from 'vite';
-import Icons from 'unplugin-icons/vite';
+// import type { UserConfig } from 'vite';
+// import Icons from 'unplugin-icons/vite';
 
-const config: UserConfig = {
-  plugins: [
-    sveltekit(),
-    Icons({
-      compiler: 'svelte',
-    }),
-  ],
+const config = {
+  plugins: [sveltekit()],
+  build: {
+    target: 'ES2022',
+  },
 };
 
 export default config;

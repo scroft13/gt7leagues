@@ -6,7 +6,8 @@ export async function load({ params }) {
   const { data: leagues } = await supabase
     .from('leagues')
     .select('seriesEvents')
-    .eq('leagueLink', params.league_name);
+    .eq('leagueLink', params.league_name)
+    .single();
   if (params.series) {
     return {
       data: leagues,

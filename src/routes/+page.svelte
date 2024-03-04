@@ -18,7 +18,7 @@
   import ChevronUp from '@rgossiaux/svelte-heroicons/outline/ChevronUp';
   import ChevronDown from '@rgossiaux/svelte-heroicons/outline/ChevronDown';
   import { goto } from '$app/navigation';
-  import { addToast } from '$lib/stores';
+  import { getCurrentUser, storedUser } from '$lib/stores';
 
   const plugins = [DayGrid, TimeGrid];
   export let data: PageData;
@@ -57,7 +57,7 @@
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   onMount(async () => {
-    data.username === null ? (setUsername = true) : (setUsername = false);
+    $storedUser?.username === null ? (setUsername = true) : (setUsername = false);
     const {
       data: { subscription: authListener },
     } = supabase.auth.onAuthStateChange((_, session) => {
@@ -110,7 +110,7 @@
     }
     if (user) {
       ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
-      joinedLeagues = (await db.leagues.findJoined(data.username ?? '', user.id)) ?? [];
+      joinedLeagues = (await db.leagues.findJoined($storedUser?.username ?? '', user.id)) ?? [];
     }
     loading = false;
     return () => {
@@ -280,24 +280,6 @@
     goto('/league/' + e.event.extendedProps.leagueLink);
   }
 
-  async function logout(): Promise<void> {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw new Error(error.message);
-      } else {
-        addToast({
-          id: Math.floor(Math.random() * 1000),
-          message: 'You have been successfully logged out.',
-          type: 'success',
-        });
-        user = null;
-      }
-    } catch (error: any) {
-      console.error('Error logging out:', error.message);
-    }
-  }
-
   async function checkUsernameOnList() {
     if (user) {
       const username = await db.currentUser.currentUsername(user.id);
@@ -319,12 +301,27 @@
     {isLoginMode}
     on:close={async (data) => {
       if (user) {
+        const currentUser = await getCurrentUser();
+        if (currentUser) {
+          storedUser.update(() => {
+            return {
+              email: currentUser.email,
+              created_at: currentUser.created_at,
+              imageUrl: currentUser.imageUrl,
+              user_id: currentUser.user_id,
+              username: currentUser.username,
+              sentMessages: [],
+              receivedMessages: [],
+            };
+          });
+        }
         showLoginModal = false;
         user = data.detail.user;
         ownedLeagues = (await db.leagues.findOwned(user?.id ?? '')) ?? [];
         joinedLeagues = (await db.leagues.findJoined(user?.email ?? '', user?.id ?? '')) ?? [];
         checkUsernameOnList();
       } else {
+        showLoginModal = false;
         return;
       }
     }}
@@ -356,7 +353,7 @@
 {/if}
 
 <div id="main-div" bind:clientWidth>
-  <div class="flex gap-4 flex-col ">
+  <div class="flex gap-4 flex-col">
     <p class="text-4xl text-center">Welcome to GT7 Leagues</p>
     {#if loading}
       <div class="w-full">
@@ -393,7 +390,6 @@
             <button class="btn-primary" on:click={() => (showLeagueAddModal = true)}>
               Create League
             </button>
-            <button class="btn-primary" on:click={logout}> Log Out</button>
           </div>
         </div>
       {:else}
@@ -432,7 +428,7 @@
           {/if}
         </div>
         <button
-          class="w-10 h-10 place-self-end -mt-4 mr-8 lg:mr-20 "
+          class="w-10 h-10 place-self-end -mt-4 mr-8 lg:mr-20"
           on:click={() => {
             showMoreBlurb = !showMoreBlurb;
           }}
