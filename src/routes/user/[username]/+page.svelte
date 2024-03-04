@@ -56,6 +56,7 @@
   let openReplyModal = false;
   let openConfirmationModal = false;
   let confirmationMessage: string;
+  let urlImage: string;
 
   onMount(async () => {
     ownedLeagues = (await db.leagues.findOwned(data.userInfo.user_id ?? '')) ?? [];
@@ -71,15 +72,13 @@
         throw image.error;
       } else {
         imageData = image.data;
+        urlImage = URL.createObjectURL(new Blob([imageData]));
       }
     }
   });
 
   function changeImage() {
     if (data.isCurrentUser) showImageUpload = true;
-  }
-  function createObjectURL(blob: Blob) {
-    return URL.createObjectURL(new Blob([blob]));
   }
 
   function sendMessage() {
@@ -158,7 +157,6 @@
   }) {
     console.log(message);
   }
-  $: console.log(data.userInfo);
 </script>
 
 {#if openConfirmationModal}
@@ -196,11 +194,14 @@
     {initialMessage}
   />
 {/if}
-<div class="mx-4 lg:mx-16 xl:mx-40">
+<div class="mx-4 lg:mx-16 xl:mx-40 mt-10">
   <div class="flex justify-evenly items-center gap-x-8 mb-4">
     <button on:click={() => changeImage()} class="relative">
       {#if imageData}
-        <img src={createObjectURL(imageData)} alt={'User Image'} class="rounded-full w-20 h-20" />
+        <div
+          style="background-image: url('{urlImage}');"
+          class="rounded-full bg-cover bg-center w-20 h-20"
+        />
       {:else}
         <div class="bg-gray-200 rounded-full w-20 h-20">
           <Fa icon={faUser} scale={3} translateX={2} translateY={2} />

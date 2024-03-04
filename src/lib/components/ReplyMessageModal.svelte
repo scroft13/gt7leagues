@@ -4,8 +4,9 @@
   import LabeledTextarea from '$lib/components/forms/labeledComponents/LabeledTextarea.svelte';
   import SubmitButton from '$lib/components/forms/SubmitButton.svelte';
   import yup from '$lib/components/forms/validation';
+  import db from '$lib/db';
   import type { Message } from '$lib/shared';
-  // import { addToast } from '$lib/stores';
+  import { addToast } from '$lib/stores';
   import {
     Dialog,
     DialogOverlay,
@@ -58,28 +59,42 @@
   async function sendMessage(messageForm: FormData) {
     console.log(messageForm);
     console.log(initialMessage);
-    // if (initialMessage.replyMessage) {
-    //   await db.messages
-    //     .sendUserMessage({
-    //       body: messageForm.message,
-    //       createdAt: new Date(),
-    //       receiver: initialMessage.replyMessage.sender,
-    //       sender: initialMessage.replyMessage.receiver,
-    //       viewed: false,
-    //     })
-    //     .then(() => {
-    //       setToast();
-    //     });
-    // }
+    if (initialMessage.replyMessage) {
+      await db.messages
+        .sendUserMessage({
+          body: messageForm.message,
+          createdAt: new Date(),
+          receiver: initialMessage.replyMessage.sender,
+          sender: initialMessage.replyMessage.receiver,
+          viewed: false,
+        })
+        .then(() => {
+          setToast();
+          close();
+        });
+    } else if (initialMessage.followUpMessage) {
+      await db.messages
+        .sendUserMessage({
+          body: messageForm.message,
+          createdAt: new Date(),
+          receiver: initialMessage.followUpMessage.receiver,
+          sender: initialMessage.followUpMessage.sender,
+          viewed: false,
+        })
+        .then(() => {
+          setToast();
+          close();
+        });
+    }
   }
 
-  // function setToast() {
-  //   addToast({
-  //     id: Math.floor(Math.random() * 1000),
-  //     message: 'Message Sent!',
-  //     type: 'success',
-  //   });
-  // }
+  function setToast() {
+    addToast({
+      id: Math.floor(Math.random() * 1000),
+      message: 'Message Sent!',
+      type: 'success',
+    });
+  }
 
   function checkClose() {
     if ($isModified) {

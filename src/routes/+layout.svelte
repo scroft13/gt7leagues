@@ -3,7 +3,7 @@
   import { UserIcon } from '@rgossiaux/svelte-heroicons/outline';
   import '../app.css';
   import { getCurrentUser, storedUser } from '$lib/stores';
-  import type { PageData } from './$types';
+
   import { onMount } from 'svelte';
   import db, { supabase } from '$lib/db';
   import type { User } from '@supabase/supabase-js';
@@ -11,12 +11,14 @@
   import ForgotPassword from '$lib/components/ForgotPassword.svelte';
   import SetUsername from '$lib/components/SetUsername.svelte';
 
-  export let data: PageData;
   let user: User | null;
   let showLoginModal = false;
   let showForgotPassword = false;
   let isLoginMode = false;
   let setUsername = false;
+  let imageData: Blob | undefined = undefined;
+  let urlImage: string;
+  let usernameList: string[] = [];
 
   onMount(async () => {
     const {
@@ -26,6 +28,23 @@
         user = session.user;
       }
     });
+
+    const data = await db.currentUser.getUsernameList();
+    if (data)
+      usernameList = data.map((x) => {
+        if (x) {
+          return x;
+        } else return '';
+      });
+    if ($storedUser?.imageUrl) {
+      const image = await supabase.storage.from('userImages').download($storedUser.imageUrl ?? '');
+      if (image.error) {
+        throw image.error;
+      } else {
+        imageData = image.data;
+        urlImage = URL.createObjectURL(new Blob([imageData]));
+      }
+    }
 
     return () => {
       authListener?.unsubscribe();
@@ -45,7 +64,6 @@
     }
   }
 
-  $: console.log(data);
   $: username = $storedUser?.username;
 </script>
 
@@ -94,7 +112,7 @@
       setUsername = false;
       checkUsernameOnList();
     }}
-    usernameList={data.usernameList}
+    {usernameList}
   />
 {/if}
 
@@ -104,9 +122,16 @@
   </a>
   {#if $storedUser}
     <a href={'/user/' + username} class="h-10 w-10">
-      <div class="rounded-full bg-gray-400 p-2">
-        <UserIcon />
-      </div>
+      {#if $storedUser.imageUrl}
+        <div
+          style="background-image: url('{urlImage}');"
+          class="rounded-full bg-cover bg-center w-10 h-10"
+        />
+      {:else}
+        <div class="rounded-full bg-gray-400 p-2">
+          <UserIcon />
+        </div>
+      {/if}
     </a>
   {:else}
     <button on:click={() => launchLoginModal(true)} class="h-10 w-10">
