@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { League, LeagueSeries } from '$lib/shared';
+  import { storedUser, publicEvents } from '$lib/stores';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -11,6 +12,8 @@
     let multipleSeries: LeagueSeries[] = leagueInfo.seriesEvents;
     seriesInfo = multipleSeries.filter((x) => x.name === data.seriesName)[0];
   }
+
+  $: console.log($publicEvents, $storedUser, seriesInfo);
 </script>
 
 <h1>

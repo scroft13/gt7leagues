@@ -41,7 +41,7 @@
   let showLoginModal = false;
   let showForgotPassword = false;
   let isLoginMode = false;
-  let loading = false;
+  let loading = true;
   let ownedLeagues: League[] = [];
   let joinedLeagues: League[] = [];
   let showMoreBlurb = false;
@@ -56,11 +56,6 @@
     events: events,
   };
 
-  async function setLeagues(user: User) {
-    ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
-    joinedLeagues = (await db.leagues.findJoined($storedUser?.username ?? '', user.id)) ?? [];
-  }
-
   onMount(async () => {
     if ($storedUser) {
       $storedUser.username === null ? (setUsername = true) : (setUsername = false);
@@ -70,9 +65,14 @@
     } = await supabase.auth.onAuthStateChange((_, session) => {
       if (session) {
         user = session.user;
-        setLeagues(user);
       }
     });
+
+    if ($storedUser) {
+      ownedLeagues = (await db.leagues.findOwned($storedUser.user_id)) ?? [];
+      joinedLeagues =
+        (await db.leagues.findJoined($storedUser.username, $storedUser.user_id)) ?? [];
+    }
 
     events = $publicEvents;
 
@@ -134,6 +134,12 @@
     showLoginModal = true;
     isLoginMode = loginMode;
   }
+  storedUser.subscribe(async (user) => {
+    if (user) {
+      ownedLeagues = (await db.leagues.findOwned(user.user_id)) ?? [];
+      joinedLeagues = (await db.leagues.findJoined(user.username, user.user_id)) ?? [];
+    }
+  });
 </script>
 
 {#if showLoginModal}
@@ -143,19 +149,11 @@
     on:close={async (data) => {
       if (user) {
         const currentUser = await getCurrentUser();
-        if (currentUser) {
-          storedUser.update(() => {
-            return {
-              email: currentUser.email,
-              created_at: currentUser.created_at,
-              imageUrl: currentUser.imageUrl,
-              user_id: currentUser.user_id,
-              username: currentUser.username,
-              sentMessages: [],
-              receivedMessages: [],
-            };
-          });
-        }
+
+        storedUser.update(() => {
+          return currentUser;
+        });
+
         showLoginModal = false;
         user = data.detail.user;
         {
