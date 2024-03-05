@@ -10,13 +10,23 @@
     leagueInfo = data.data;
     let multipleSeries: LeagueSeries[] = leagueInfo.seriesEvents;
     seriesInfo = multipleSeries.filter((x) => x.name === data.seriesName)[0];
-    console.log(seriesInfo, seriesInfo.eventDetails);
   }
 </script>
 
 <h1>
   {data.seriesName}
 </h1>
-<p>
-  {seriesInfo.eventDetails.eventInfo}
-</p>
+{#if seriesInfo}
+  <p>
+    {seriesInfo.eventDetails.eventInfo}
+  </p>
+  <ul>
+    League Members
+    <li>
+      {#each seriesInfo.members as member}
+        {member}
+      {/each}
+    </li>
+    <button>Join Series</button>
+  </ul>
+{/if}

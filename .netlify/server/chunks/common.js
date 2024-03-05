@@ -1,4 +1,4 @@
-import { k as getContext, s as setContext, c as create_ssr_component, p as onDestroy, t as tick, g as compute_rest_props, d as subscribe, q as listen, r as bubble, u as prevent_default, w as stop_propagation, h as get_current_component, i as spread, j as escape_object, a as add_attribute, v as validate_component, m as missing_component, b as createEventDispatcher } from "./index3.js";
+import { j as getContext, s as setContext, r as listen, t as bubble, u as prevent_default, w as stop_propagation, c as create_ssr_component, g as compute_rest_props, o as get_current_component, h as spread, i as escape_object, a as add_attribute, v as validate_component, m as missing_component, d as subscribe, x as set_store_value } from "./index3.js";
 import { w as writable } from "./index2.js";
 var State;
 (function(State2) {
@@ -6,9 +6,6 @@ var State;
   State2[State2["Closed"] = 1] = "Closed";
 })(State || (State = {}));
 const OPEN_CLOSED_CONTEXT_NAME = "headlessui-open-closed-context";
-function hasOpenClosed() {
-  return useOpenClosed() !== void 0;
-}
 function useOpenClosed() {
   return getContext(OPEN_CLOSED_CONTEXT_NAME);
 }
@@ -31,85 +28,6 @@ function generateId() {
 }
 function useId() {
   return generateId();
-}
-let interactables = /* @__PURE__ */ new Set();
-let originals = /* @__PURE__ */ new Map();
-function inert(element) {
-  element.setAttribute("aria-hidden", "true");
-  element.inert = true;
-}
-function restore(element) {
-  let original = originals.get(element);
-  if (!original)
-    return;
-  if (original["aria-hidden"] === null)
-    element.removeAttribute("aria-hidden");
-  else
-    element.setAttribute("aria-hidden", original["aria-hidden"]);
-  element.inert = original.inert;
-}
-function useInertOthers(container, enabled = true) {
-  if (!enabled)
-    return;
-  if (!container)
-    return;
-  let element = container;
-  interactables.add(element);
-  for (let original of originals.keys()) {
-    if (original.contains(element)) {
-      restore(original);
-      originals.delete(original);
-    }
-  }
-  document.querySelectorAll("body > *").forEach((child) => {
-    if (!(child instanceof HTMLElement))
-      return;
-    for (let interactable of interactables) {
-      if (child.contains(interactable))
-        return;
-    }
-    if (interactables.size === 1) {
-      originals.set(child, {
-        "aria-hidden": child.getAttribute("aria-hidden"),
-        // @ts-expect-error `inert` does not exist on HTMLElement (yet!)
-        inert: child.inert
-      });
-      inert(child);
-    }
-  });
-  return () => {
-    interactables.delete(element);
-    if (interactables.size > 0) {
-      document.querySelectorAll("body > *").forEach((child) => {
-        if (!(child instanceof HTMLElement))
-          return;
-        if (originals.has(child))
-          return;
-        for (let interactable of interactables) {
-          if (child.contains(interactable))
-            return;
-        }
-        originals.set(child, {
-          "aria-hidden": child.getAttribute("aria-hidden"),
-          // @ts-expect-error `inert` does not exist on HTMLElement (yet!)
-          inert: child.inert
-        });
-        inert(child);
-      });
-    } else {
-      for (let element2 of originals.keys()) {
-        restore(element2);
-        originals.delete(element2);
-      }
-    }
-  };
-}
-function contains(containers, element) {
-  for (let container of containers) {
-    if (container.contains(element))
-      return true;
-  }
-  return false;
 }
 var Keys;
 (function(Keys2) {
@@ -169,9 +87,6 @@ var FocusableMode;
   FocusableMode2[FocusableMode2["Strict"] = 0] = "Strict";
   FocusableMode2[FocusableMode2["Loose"] = 1] = "Loose";
 })(FocusableMode || (FocusableMode = {}));
-function focusElement(element) {
-  element?.focus({ preventScroll: true });
-}
 function focusIn(container, focus) {
   let elements = Array.isArray(container) ? container : getFocusableElements(container);
   let active = document.activeElement;
@@ -217,190 +132,11 @@ function focusIn(container, focus) {
     next.setAttribute("tabindex", "0");
   return FocusResult.Success;
 }
-const FocusTrap = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let { containers } = $$props;
-  let { enabled = true } = $$props;
-  let { options = {} } = $$props;
-  let restoreElement = typeof window !== "undefined" ? document.activeElement : null;
-  async function handleFocus() {
-    if (!enabled)
-      return;
-    if (containers.size !== 1)
-      return;
-    let { initialFocus } = options;
-    await tick();
-    let activeElement = document.activeElement;
-    if (initialFocus) {
-      if (initialFocus === activeElement) {
-        return;
-      }
-    } else if (contains(containers, activeElement)) {
-      return;
-    }
-    restoreElement = activeElement;
-    if (initialFocus) {
-      focusElement(initialFocus);
-    } else {
-      let couldFocus = false;
-      for (let container of containers) {
-        let result = focusIn(container, Focus$1.First);
-        if (result === FocusResult.Success) {
-          couldFocus = true;
-          break;
-        }
-      }
-      if (!couldFocus)
-        console.warn("There are no focusable elements inside the <FocusTrap />");
-    }
-  }
-  function restore2() {
-    focusElement(restoreElement);
-    restoreElement = null;
-  }
-  onDestroy(() => {
-    restore2();
-  });
-  if ($$props.containers === void 0 && $$bindings.containers && containers !== void 0)
-    $$bindings.containers(containers);
-  if ($$props.enabled === void 0 && $$bindings.enabled && enabled !== void 0)
-    $$bindings.enabled(enabled);
-  if ($$props.options === void 0 && $$bindings.options && options !== void 0)
-    $$bindings.options(options);
-  {
-    enabled && containers ? handleFocus() : restore2();
-  }
-  return ``;
-});
 var StackMessage;
 (function(StackMessage2) {
   StackMessage2[StackMessage2["Add"] = 0] = "Add";
   StackMessage2[StackMessage2["Remove"] = 1] = "Remove";
 })(StackMessage || (StackMessage = {}));
-const STACK_CONTEXT_NAME = "headlessui-stack-context";
-const StackContextProvider = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let _cleanup;
-  let { onUpdate } = $$props;
-  let { element } = $$props;
-  function notify(...args) {
-    onUpdate?.(...args);
-    parentUpdate?.(...args);
-  }
-  let parentUpdate = getContext(STACK_CONTEXT_NAME);
-  setContext(STACK_CONTEXT_NAME, notify);
-  onDestroy(() => {
-    if (_cleanup) {
-      _cleanup();
-    }
-  });
-  if ($$props.onUpdate === void 0 && $$bindings.onUpdate && onUpdate !== void 0)
-    $$bindings.onUpdate(onUpdate);
-  if ($$props.element === void 0 && $$bindings.element && element !== void 0)
-    $$bindings.element(element);
-  _cleanup = (() => {
-    if (_cleanup) {
-      _cleanup();
-    }
-    if (!element)
-      return null;
-    let savedElement = element;
-    notify(StackMessage.Add, savedElement);
-    return () => notify(StackMessage.Remove, savedElement);
-  })();
-  return `${slots.default ? slots.default({}) : ``}`;
-});
-const DESCRIPTION_CONTEXT_NAME = "headlessui-description-context";
-const DescriptionProvider = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let $$restProps = compute_rest_props($$props, ["name", "slotProps"]);
-  let $contextStore, $$unsubscribe_contextStore;
-  let { name } = $$props;
-  let { slotProps = {} } = $$props;
-  let descriptionIds = [];
-  let contextStore = writable({
-    name,
-    slotProps,
-    props: $$restProps,
-    register
-  });
-  $$unsubscribe_contextStore = subscribe(contextStore, (value) => $contextStore = value);
-  setContext(DESCRIPTION_CONTEXT_NAME, contextStore);
-  function register(value) {
-    descriptionIds = [...descriptionIds, value];
-    return () => {
-      descriptionIds = descriptionIds.filter((descriptionId) => descriptionId !== value);
-    };
-  }
-  if ($$props.name === void 0 && $$bindings.name && name !== void 0)
-    $$bindings.name(name);
-  if ($$props.slotProps === void 0 && $$bindings.slotProps && slotProps !== void 0)
-    $$bindings.slotProps(slotProps);
-  {
-    contextStore.set({
-      name,
-      slotProps,
-      props: $$restProps,
-      register,
-      descriptionIds: descriptionIds.length > 0 ? descriptionIds.join(" ") : void 0
-    });
-  }
-  $$unsubscribe_contextStore();
-  return `${slots.default ? slots.default({
-    describedby: $contextStore.descriptionIds
-  }) : ``}`;
-});
-const FORCE_PORTAL_ROOT_CONTEXT_NAME = "headlessui-force-portal-root-context";
-function usePortalRoot() {
-  return getContext(FORCE_PORTAL_ROOT_CONTEXT_NAME);
-}
-const ForcePortalRootContext = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let { force } = $$props;
-  setContext(FORCE_PORTAL_ROOT_CONTEXT_NAME, writable(force));
-  if ($$props.force === void 0 && $$bindings.force && force !== void 0)
-    $$bindings.force(force);
-  return `${slots.default ? slots.default({}) : ``}`;
-});
-const PORTAL_GROUP_CONTEXT_NAME = "headlessui-portal-group-context";
-function usePortalGroupContext() {
-  return getContext(PORTAL_GROUP_CONTEXT_NAME);
-}
-const PortalGroup = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let { target } = $$props;
-  let targetStore = writable(target);
-  setContext(PORTAL_GROUP_CONTEXT_NAME, targetStore);
-  if ($$props.target === void 0 && $$bindings.target && target !== void 0)
-    $$bindings.target(target);
-  {
-    targetStore.set(target);
-  }
-  return `${slots.default ? slots.default({}) : ``}`;
-});
-const Portal = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let $groupTarget, $$unsubscribe_groupTarget;
-  let $forceInRoot, $$unsubscribe_forceInRoot;
-  let forceInRoot = usePortalRoot();
-  $$unsubscribe_forceInRoot = subscribe(forceInRoot, (value) => $forceInRoot = value);
-  let groupTarget = usePortalGroupContext();
-  $$unsubscribe_groupTarget = subscribe(groupTarget, (value) => $groupTarget = value);
-  (() => {
-    if (!(forceInRoot && $forceInRoot) && groupTarget !== void 0 && $groupTarget !== null)
-      return $groupTarget;
-    if (typeof window === "undefined")
-      return null;
-    let existingRoot = document.getElementById("headlessui-portal-root");
-    if (existingRoot)
-      return existingRoot;
-    let root = document.createElement("div");
-    root.setAttribute("id", "headlessui-portal-root");
-    tick().then(() => {
-      if (root !== document.body.lastChild) {
-        document.body.appendChild(root);
-      }
-    });
-    return document.body.appendChild(root);
-  })();
-  $$unsubscribe_groupTarget();
-  $$unsubscribe_forceInRoot();
-  return `<div>${slots.default ? slots.default({}) : ``}</div>`;
-});
 const MODIFIER_DIVIDER = "!";
 const modifierRegex = new RegExp(`^[^${MODIFIER_DIVIDER}]+(?:${MODIFIER_DIVIDER}(?:preventDefault|stopPropagation|passive|nonpassive|capture|once|self))+$`);
 function forwardEventsBuilder(component, except = []) {
@@ -947,228 +683,6 @@ var DialogStates;
   DialogStates2[DialogStates2["Open"] = 0] = "Open";
   DialogStates2[DialogStates2["Closed"] = 1] = "Closed";
 })(DialogStates || (DialogStates = {}));
-const DIALOG_CONTEXT_NAME = "headlessui-dialog-context";
-function useDialogContext(component) {
-  let context = getContext(DIALOG_CONTEXT_NAME);
-  if (context === void 0) {
-    throw new Error(`<${component} /> is missing a parent <Dialog /> component.`);
-  }
-  return context;
-}
-const Dialog = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let dialogState;
-  let visible;
-  let enabled;
-  let _cleanup;
-  let _cleanupScrollLock;
-  let _cleanupClose;
-  let propsWeControl;
-  let slotProps;
-  let $$restProps = compute_rest_props($$props, ["as", "use", "open", "initialFocus"]);
-  let $api, $$unsubscribe_api;
-  let $openClosedState, $$unsubscribe_openClosedState;
-  let { as = "div" } = $$props;
-  let { use = [] } = $$props;
-  let { open = void 0 } = $$props;
-  let { initialFocus = null } = $$props;
-  const forwardEvents = forwardEventsBuilder(get_current_component(), ["close"]);
-  const dispatch = createEventDispatcher();
-  let containers = /* @__PURE__ */ new Set();
-  let openClosedState = useOpenClosed();
-  $$unsubscribe_openClosedState = subscribe(openClosedState, (value) => $openClosedState = value);
-  let internalDialogRef = null;
-  const id2 = `headlessui-dialog-${useId()}`;
-  onDestroy(() => {
-    if (_cleanup) {
-      _cleanup();
-    }
-  });
-  let titleId;
-  let api = writable({
-    titleId,
-    dialogState,
-    setTitleId(id3) {
-      if (titleId === id3)
-        return;
-      titleId = id3;
-    },
-    close() {
-      dispatch("close", false);
-    }
-  });
-  $$unsubscribe_api = subscribe(api, (value) => $api = value);
-  setContext(DIALOG_CONTEXT_NAME, api);
-  onDestroy(() => {
-    if (_cleanupScrollLock) {
-      _cleanupScrollLock();
-    }
-  });
-  onDestroy(() => {
-    if (_cleanupClose) {
-      _cleanupClose();
-    }
-  });
-  if ($$props.as === void 0 && $$bindings.as && as !== void 0)
-    $$bindings.as(as);
-  if ($$props.use === void 0 && $$bindings.use && use !== void 0)
-    $$bindings.use(use);
-  if ($$props.open === void 0 && $$bindings.open && open !== void 0)
-    $$bindings.open(open);
-  if ($$props.initialFocus === void 0 && $$bindings.initialFocus && initialFocus !== void 0)
-    $$bindings.initialFocus(initialFocus);
-  let $$settled;
-  let $$rendered;
-  do {
-    $$settled = true;
-    {
-      {
-        open = open === void 0 && openClosedState !== void 0 ? match($openClosedState, {
-          [State.Open]: true,
-          [State.Closed]: false
-        }) : open;
-        let hasOpen = open !== void 0 || openClosedState !== void 0;
-        if (!hasOpen) {
-          throw new Error(`You forgot to provide an \`open\` prop to the \`Dialog\` component.`);
-        }
-        if (typeof open !== "boolean") {
-          throw new Error(`You provided an \`open\` prop to the \`Dialog\`, but the value is not a boolean. Received: ${open}`);
-        }
-      }
-    }
-    dialogState = open ? DialogStates.Open : DialogStates.Closed;
-    visible = openClosedState !== void 0 ? $openClosedState === State.Open : dialogState === DialogStates.Open;
-    enabled = dialogState === DialogStates.Open;
-    _cleanup = (() => {
-      if (_cleanup) {
-        _cleanup();
-      }
-      return useInertOthers(internalDialogRef, enabled);
-    })();
-    {
-      api.update((obj) => {
-        return { ...obj, titleId, dialogState };
-      });
-    }
-    _cleanupScrollLock = (() => {
-      if (_cleanupScrollLock) {
-        _cleanupScrollLock();
-      }
-      if (dialogState !== DialogStates.Open)
-        return;
-      return;
-    })();
-    _cleanupClose = (() => {
-      if (_cleanupClose) {
-        _cleanupClose();
-      }
-      if (dialogState !== DialogStates.Open)
-        return;
-      let container = internalDialogRef;
-      if (!container)
-        return;
-      let observer = new IntersectionObserver((entries) => {
-        for (let entry of entries) {
-          if (entry.boundingClientRect.x === 0 && entry.boundingClientRect.y === 0 && entry.boundingClientRect.width === 0 && entry.boundingClientRect.height === 0) {
-            $api.close();
-          }
-        }
-      });
-      observer.observe(container);
-      return () => observer.disconnect();
-    })();
-    propsWeControl = {
-      id: id2,
-      role: "dialog",
-      "aria-modal": dialogState === DialogStates.Open ? true : void 0,
-      "aria-labelledby": titleId
-    };
-    slotProps = { open };
-    $$rendered = `
-${validate_component(FocusTrap, "FocusTrap").$$render(
-      $$result,
-      {
-        containers,
-        enabled,
-        options: { initialFocus }
-      },
-      {},
-      {}
-    )}
-${validate_component(StackContextProvider, "StackContextProvider").$$render(
-      $$result,
-      {
-        element: internalDialogRef,
-        onUpdate: (message, element) => {
-          return match(message, {
-            [StackMessage.Add]() {
-              containers = /* @__PURE__ */ new Set([...containers, element]);
-            },
-            [StackMessage.Remove]() {
-              containers.delete(element);
-              containers = /* @__PURE__ */ new Set([...containers]);
-            }
-          });
-        }
-      },
-      {},
-      {
-        default: () => {
-          return `${validate_component(ForcePortalRootContext, "ForcePortalRootContext").$$render($$result, { force: true }, {}, {
-            default: () => {
-              return `${validate_component(Portal, "Portal").$$render($$result, {}, {}, {
-                default: () => {
-                  return `${validate_component(PortalGroup, "PortalGroup").$$render($$result, { target: internalDialogRef }, {}, {
-                    default: () => {
-                      return `${validate_component(ForcePortalRootContext, "ForcePortalRootContext").$$render($$result, { force: false }, {}, {
-                        default: () => {
-                          return `${validate_component(DescriptionProvider, "DescriptionProvider").$$render($$result, { name: "DialogDescription", slotProps }, {}, {
-                            default: ({ describedby }) => {
-                              return `${validate_component(Render, "Render").$$render(
-                                $$result,
-                                Object.assign(
-                                  {},
-                                  { ...$$restProps, ...propsWeControl },
-                                  { as },
-                                  { slotProps },
-                                  { use: [...use, forwardEvents] },
-                                  { name: "Dialog" },
-                                  { "aria-describedby": describedby },
-                                  { visible },
-                                  {
-                                    features: Features.RenderStrategy | Features.Static
-                                  },
-                                  { el: internalDialogRef }
-                                ),
-                                {
-                                  el: ($$value) => {
-                                    internalDialogRef = $$value;
-                                    $$settled = false;
-                                  }
-                                },
-                                {
-                                  default: () => {
-                                    return `${slots.default ? slots.default({ ...slotProps }) : ``}`;
-                                  }
-                                }
-                              )}`;
-                            }
-                          })}`;
-                        }
-                      })}`;
-                    }
-                  })}`;
-                }
-              })}`;
-            }
-          })}`;
-        }
-      }
-    )}`;
-  } while (!$$settled);
-  $$unsubscribe_api();
-  $$unsubscribe_openClosedState();
-  return $$rendered;
-});
 var DisclosureStates;
 (function(DisclosureStates2) {
   DisclosureStates2[DisclosureStates2["Open"] = 0] = "Open";
@@ -1193,11 +707,108 @@ var MenuStates;
   MenuStates2[MenuStates2["Open"] = 0] = "Open";
   MenuStates2[MenuStates2["Closed"] = 1] = "Closed";
 })(MenuStates || (MenuStates = {}));
+const POPOVER_GROUP_CONTEXT_NAME = "headlessui-popover-group-context";
+function usePopoverGroupContext() {
+  return getContext(POPOVER_GROUP_CONTEXT_NAME);
+}
 var PopoverStates;
 (function(PopoverStates2) {
   PopoverStates2[PopoverStates2["Open"] = 0] = "Open";
   PopoverStates2[PopoverStates2["Closed"] = 1] = "Closed";
 })(PopoverStates || (PopoverStates = {}));
+const POPOVER_CONTEXT_NAME = "headlessui-popover-context";
+function usePopoverContext(component) {
+  let context = getContext(POPOVER_CONTEXT_NAME);
+  if (context === void 0) {
+    throw new Error(`<${component} /> is missing a parent <Popover /> component.`);
+  }
+  return context;
+}
+const Popover = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+  let slotProps;
+  let $$restProps = compute_rest_props($$props, ["as", "use"]);
+  let $api, $$unsubscribe_api;
+  let $button, $$unsubscribe_button;
+  let $$unsubscribe_panel;
+  let $openClosedState, $$unsubscribe_openClosedState;
+  let { as = "div" } = $$props;
+  let { use = [] } = $$props;
+  const forwardEvents = forwardEventsBuilder(get_current_component());
+  const buttonId = `headlessui-popover-button-${useId()}`;
+  const panelId = `headlessui-popover-panel-${useId()}`;
+  let popoverState = PopoverStates.Closed;
+  let panel = writable(null);
+  $$unsubscribe_panel = subscribe(panel, (value) => value);
+  let button = writable(null);
+  $$unsubscribe_button = subscribe(button, (value) => $button = value);
+  let api = writable({
+    popoverState,
+    buttonId,
+    panelId,
+    panel,
+    button,
+    togglePopover() {
+      popoverState = match(popoverState, {
+        [PopoverStates.Open]: PopoverStates.Closed,
+        [PopoverStates.Closed]: PopoverStates.Open
+      });
+    },
+    closePopover() {
+      if (popoverState === PopoverStates.Closed)
+        return;
+      popoverState = PopoverStates.Closed;
+    },
+    close(focusableElement) {
+      $api.closePopover();
+      let restoreElement = (() => {
+        if (!focusableElement)
+          return $button;
+        if (focusableElement instanceof HTMLElement)
+          return focusableElement;
+        return $button;
+      })();
+      restoreElement?.focus();
+    }
+  });
+  $$unsubscribe_api = subscribe(api, (value) => $api = value);
+  setContext(POPOVER_CONTEXT_NAME, api);
+  let openClosedState = writable(State.Closed);
+  $$unsubscribe_openClosedState = subscribe(openClosedState, (value) => $openClosedState = value);
+  useOpenClosedProvider(openClosedState);
+  const groupContext = usePopoverGroupContext();
+  groupContext?.registerPopover;
+  if ($$props.as === void 0 && $$bindings.as && as !== void 0)
+    $$bindings.as(as);
+  if ($$props.use === void 0 && $$bindings.use && use !== void 0)
+    $$bindings.use(use);
+  set_store_value(
+    openClosedState,
+    $openClosedState = match(popoverState, {
+      [PopoverStates.Open]: State.Open,
+      [PopoverStates.Closed]: State.Closed
+    }),
+    $openClosedState
+  );
+  {
+    api.update((obj) => {
+      return { ...obj, popoverState };
+    });
+  }
+  slotProps = {
+    open: popoverState === PopoverStates.Open,
+    close: $api.close
+  };
+  $$unsubscribe_api();
+  $$unsubscribe_button();
+  $$unsubscribe_panel();
+  $$unsubscribe_openClosedState();
+  return `
+${validate_component(Render, "Render").$$render($$result, Object.assign({}, $$restProps, { as }, { slotProps }, { use: [...use, forwardEvents] }, { name: "Popover" }), {}, {
+    default: () => {
+      return `${slots.default ? slots.default({ ...slotProps }) : ``}`;
+    }
+  })}`;
+});
 var Reason;
 (function(Reason2) {
   Reason2["Finished"] = "finished";
@@ -1208,83 +819,17 @@ var TreeStates;
   TreeStates2["Visible"] = "visible";
   TreeStates2["Hidden"] = "hidden";
 })(TreeStates || (TreeStates = {}));
-const TRANSITION_CONTEXT_NAME = "headlessui-transition-context";
-const NESTING_CONTEXT_NAME = "headlessui-nesting-context";
-function hasTransitionContext() {
-  return getContext(TRANSITION_CONTEXT_NAME) !== void 0;
-}
-function useTransitionContext() {
-  let context = getContext(TRANSITION_CONTEXT_NAME);
-  if (context === void 0) {
-    throw new Error("A <TransitionChild /> is used but it is missing a parent <TransitionRoot />.");
-  }
-  return context;
-}
-function useParentNesting() {
-  let context = getContext(NESTING_CONTEXT_NAME);
-  if (context === void 0) {
-    throw new Error("A <TransitionChild /> is used but it is missing a parent <TransitionRoot />.");
-  }
-  return context;
-}
-function hasChildren(bag) {
-  if ("children" in bag)
-    return hasChildren(bag.children);
-  return bag.filter(({ state }) => state === TreeStates.Visible).length > 0;
-}
-function useNesting(done) {
-  let transitionableChildren = [];
-  function unregister(childId, strategy = RenderStrategy.Hidden) {
-    let idx = transitionableChildren.findIndex(({ id: id2 }) => id2 === childId);
-    if (idx === -1)
-      return;
-    let hadChildren = hasChildren(transitionableChildren);
-    match(strategy, {
-      [RenderStrategy.Unmount]() {
-        transitionableChildren.splice(idx, 1);
-      },
-      [RenderStrategy.Hidden]() {
-        transitionableChildren[idx].state = TreeStates.Hidden;
-      }
-    });
-    if (hadChildren && !hasChildren(transitionableChildren)) {
-      done?.();
-    }
-  }
-  function register(childId) {
-    let child = transitionableChildren.find(({ id: id2 }) => id2 === childId);
-    if (!child) {
-      transitionableChildren.push({ id: childId, state: TreeStates.Visible });
-    } else if (child.state !== TreeStates.Visible) {
-      child.state = TreeStates.Visible;
-    }
-    return () => unregister(childId, RenderStrategy.Unmount);
-  }
-  return {
-    children: transitionableChildren,
-    register,
-    unregister
-  };
-}
 export {
-  DialogStates as D,
-  Features as F,
-  NESTING_CONTEXT_NAME as N,
+  Focus$1 as F,
+  PopoverStates as P,
   Render as R,
   State as S,
-  TreeStates as T,
-  useId as a,
-  useTransitionContext as b,
-  useParentNesting as c,
-  useOpenClosedProvider as d,
-  RenderStrategy as e,
+  useOpenClosed as a,
+  focusIn as b,
+  Features as c,
+  usePopoverGroupContext as d,
+  useId as e,
   forwardEventsBuilder as f,
-  useNesting as g,
-  useOpenClosed as h,
-  TRANSITION_CONTEXT_NAME as i,
-  hasTransitionContext as j,
-  hasOpenClosed as k,
-  Dialog as l,
-  match as m,
-  useDialogContext as u
+  Popover as g,
+  usePopoverContext as u
 };

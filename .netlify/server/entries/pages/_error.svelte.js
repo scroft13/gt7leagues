@@ -1,4 +1,4 @@
-import { k as getContext, c as create_ssr_component, d as subscribe, v as validate_component } from "../../chunks/index3.js";
+import { j as getContext, c as create_ssr_component, d as subscribe, v as validate_component } from "../../chunks/index3.js";
 import { E as ExclamationCircle } from "../../chunks/ExclamationCircle.js";
 const getStores = () => {
   const stores = getContext("__svelte__");

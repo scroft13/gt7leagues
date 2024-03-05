@@ -122,7 +122,7 @@
   </a>
   {#if $storedUser}
     <a href={'/user/' + username} class="h-10 w-10">
-      {#if $storedUser.imageUrl}
+      {#if urlImage}
         <div
           style="background-image: url('{urlImage}');"
           class="rounded-full bg-cover bg-center w-10 h-10"

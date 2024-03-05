@@ -373,6 +373,7 @@ function displayTime(date) {
   return hours + ":" + minutes + " " + amPm;
 }
 function dateToServerString(date) {
+  console.log(date);
   const splitTerm = date.split("-");
   const year = splitTerm[0], month = splitTerm[1], day = splitTerm[2];
   return month + "/" + day + "/" + year;
