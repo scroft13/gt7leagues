@@ -1,6 +1,6 @@
 import { w as writable } from "./index2.js";
 import { d as db, s as supabase } from "./db.js";
-import { s as setContext, k as getContext } from "./index3.js";
+import { s as setContext, j as getContext } from "./index3.js";
 function arrayOfUndefs(length) {
   return new Array(length).fill(void 0);
 }

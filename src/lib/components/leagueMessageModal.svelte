@@ -12,18 +12,16 @@
   import Form from '$lib/components/forms/Form.svelte';
   import LabeledTextarea from '$lib/components/forms/labeledComponents/LabeledTextarea.svelte';
   import SubmitButton from '$lib/components/forms/SubmitButton.svelte';
-  import { addToast } from '$lib/stores';
+  import { addToast, storedUser } from '$lib/stores';
 
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
   import db from '$lib/db';
-  import type { User } from '@supabase/supabase-js';
   import type { League } from '$lib/shared';
 
   export let open: boolean;
   export const id: string | undefined = undefined;
   export let type: string;
   export let leagueInfo: League;
-  export let user: User;
   export let username: string;
   export let leagueRole: 'Manager' | 'Racer';
 
@@ -39,7 +37,6 @@
       validationSchema: formSchema,
       onSubmit: async (formData: FormData) => {
         if ($isModified) {
-          console.log(formData);
           const resultData = { ...formData };
           sendMessage(resultData);
         }
@@ -55,7 +52,7 @@
         date: new Date(),
         leagueRole: leagueRole,
         message: JSON.stringify(messageForm.message),
-        userId: user.id,
+        userId: $storedUser?.user_id ?? '',
         username: username ?? '',
       })
       .then(() => setToast());

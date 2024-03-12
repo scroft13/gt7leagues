@@ -78,19 +78,20 @@
     "src": "src/routes/+error.svelte"
   },
   "src/routes/+layout.css": {
-    "file": "_app/immutable/assets/_layout.1b704ffa.css",
+    "file": "_app/immutable/assets/_layout.8585dfb3.css",
     "src": "src/routes/+layout.css"
   },
   "src/routes/+layout.svelte": {
     "css": [
-      "_app/immutable/assets/_layout.1b704ffa.css"
+      "_app/immutable/assets/_layout.8585dfb3.css"
     ],
     "file": "entries/pages/_layout.svelte.js",
     "imports": [
       "_index3.js",
       "_stores.js",
+      "_db.js",
       "_common.js",
-      "_index2.js"
+      "_validation.js"
     ],
     "isEntry": true,
     "src": "src/routes/+layout.svelte"
@@ -221,7 +222,9 @@
       "_index3.js",
       "_db.js",
       "_stores.js",
-      "_common.js"
+      "_common.js",
+      "_index2.js",
+      "_validation.js"
     ],
     "isEntry": true,
     "src": "src/routes/user/[username]/+page.svelte"

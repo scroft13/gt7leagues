@@ -22,7 +22,7 @@ ${``}
 ${``}
 ${``}
 
-<div id="main-div"><div class="flex gap-4 flex-col "><p class="text-4xl text-center">Welcome to GT7 Leagues</p>
+<div id="main-div"><div class="flex gap-4 flex-col"><p class="text-4xl text-center">Welcome to GT7 Leagues</p>
     ${`<div class="w-full"><div class="h-20 my-2 mx-4"><div class="skeleton-block"></div></div></div>
       <div class="w-full"><div class="h-20 my-1 mx-4"><div class="skeleton-block"></div></div></div>
       <div class="w-full"><div class="h-[500px] lg:h-[1200px] my-2 mx-4"><div class="skeleton-block"></div></div></div>`}</div></div>`;

@@ -1,4 +1,4 @@
-import "../../../../chunks/db.js";
+import { s as supabase } from "../../../../chunks/db.js";
 import { s as storedUser } from "../../../../chunks/stores.js";
 import { e as error } from "../../../../chunks/index.js";
 async function load({ params }) {
@@ -13,7 +13,9 @@ async function load({ params }) {
     if (storedUserUsername === params.username) {
       isCurrentUser = true;
     }
+    const userInfo = await supabase.from("userInfo").select("*").eq("username", params.username).single();
     return {
+      userInfo: userInfo.data,
       isCurrentUser
     };
   }

@@ -38,6 +38,11 @@ function compute_rest_props(props, keys) {
 function null_to_empty(value) {
   return value == null ? "" : value;
 }
+function set_store_value(store, ret, value) {
+  store.set(value);
+  return ret;
+}
+const globals = typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : global;
 function listen(node, event, handler, options) {
   node.addEventListener(event, handler, options);
   return () => node.removeEventListener(event, handler, options);
@@ -68,9 +73,6 @@ function get_current_component() {
     throw new Error("Function called outside component initialization");
   return current_component;
 }
-function onDestroy(fn) {
-  get_current_component().$$.on_destroy.push(fn);
-}
 function createEventDispatcher() {
   const component = get_current_component();
   return (type, detail, { cancelable = false } = {}) => {
@@ -96,76 +98,6 @@ function bubble(component, event) {
   const callbacks = component.$$.callbacks[event.type];
   if (callbacks) {
     callbacks.slice().forEach((fn) => fn.call(this, event));
-  }
-}
-const dirty_components = [];
-const binding_callbacks = [];
-let render_callbacks = [];
-const flush_callbacks = [];
-const resolved_promise = /* @__PURE__ */ Promise.resolve();
-let update_scheduled = false;
-function schedule_update() {
-  if (!update_scheduled) {
-    update_scheduled = true;
-    resolved_promise.then(flush);
-  }
-}
-function tick() {
-  schedule_update();
-  return resolved_promise;
-}
-function add_render_callback(fn) {
-  render_callbacks.push(fn);
-}
-const seen_callbacks = /* @__PURE__ */ new Set();
-let flushidx = 0;
-function flush() {
-  if (flushidx !== 0) {
-    return;
-  }
-  const saved_component = current_component;
-  do {
-    try {
-      while (flushidx < dirty_components.length) {
-        const component = dirty_components[flushidx];
-        flushidx++;
-        set_current_component(component);
-        update(component.$$);
-      }
-    } catch (e) {
-      dirty_components.length = 0;
-      flushidx = 0;
-      throw e;
-    }
-    set_current_component(null);
-    dirty_components.length = 0;
-    flushidx = 0;
-    while (binding_callbacks.length)
-      binding_callbacks.pop()();
-    for (let i = 0; i < render_callbacks.length; i += 1) {
-      const callback = render_callbacks[i];
-      if (!seen_callbacks.has(callback)) {
-        seen_callbacks.add(callback);
-        callback();
-      }
-    }
-    render_callbacks.length = 0;
-  } while (dirty_components.length);
-  while (flush_callbacks.length) {
-    flush_callbacks.pop()();
-  }
-  update_scheduled = false;
-  seen_callbacks.clear();
-  set_current_component(saved_component);
-}
-function update($$) {
-  if ($$.fragment !== null) {
-    $$.update();
-    run_all($$.before_update);
-    const dirty = $$.dirty;
-    $$.dirty = [-1];
-    $$.fragment && $$.fragment.p($$.ctx, dirty);
-    $$.after_update.forEach(add_render_callback);
   }
 }
 const _boolean_attributes = [
@@ -353,23 +285,23 @@ export {
   escape as e,
   each as f,
   compute_rest_props as g,
-  get_current_component as h,
-  spread as i,
-  escape_object as j,
-  getContext as k,
-  get_store_value as l,
+  spread as h,
+  escape_object as i,
+  getContext as j,
+  get_store_value as k,
+  escape_attribute_value as l,
   missing_component as m,
   null_to_empty as n,
-  escape_attribute_value as o,
-  onDestroy as p,
-  listen as q,
-  bubble as r,
+  get_current_component as o,
+  noop as p,
+  globals as q,
+  listen as r,
   setContext as s,
-  tick as t,
+  bubble as t,
   prevent_default as u,
   validate_component as v,
   stop_propagation as w,
-  noop as x,
+  set_store_value as x,
   safe_not_equal as y,
   run_all as z
 };

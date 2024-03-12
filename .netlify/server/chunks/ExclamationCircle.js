@@ -1,4 +1,4 @@
-import { c as create_ssr_component, g as compute_rest_props, i as spread, j as escape_object } from "./index3.js";
+import { c as create_ssr_component, g as compute_rest_props, h as spread, i as escape_object } from "./index3.js";
 const ExclamationCircle = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $$restProps = compute_rest_props($$props, []);
   return `<svg${spread(

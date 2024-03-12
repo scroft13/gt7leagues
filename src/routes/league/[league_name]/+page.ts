@@ -1,24 +1,29 @@
-import db, { supabase } from '$lib/db.js';
+import db from '$lib/db.js';
 import type { League } from '$lib/shared.js';
-import type { User } from '@supabase/supabase-js';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params }) {
-  const supabaseListener = await supabase.auth.getUser();
   const leagueInfo: League[] | void = await db.leagues.find(params.league_name);
-  const user: User | null = supabaseListener.data.user;
-  const username: string = await db.currentUser.currentUsername(user?.id ?? '');
+  const data = await db.currentUser.getUsernameList();
+  let usernameList;
+  if (data) {
+    usernameList = data.map((x) => {
+      if (x) {
+        return x;
+      } else return '';
+    });
+  }
 
-  if (params.league_name && leagueInfo && user) {
+  if (params.league_name && leagueInfo) {
     return {
       leagueLink: params.league_name,
-      user: user,
       leagueInfo: leagueInfo[0],
-      username: username,
+      usernameList,
     };
   } else {
     return {
       redirect: true,
+      usernameList,
     };
   }
 }

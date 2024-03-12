@@ -11,7 +11,6 @@ const withOpacityValue =
 module.exports = {
   darkMode: 'class',
   content: ['./src/**/*.{html,js,svelte,ts}'],
-
   theme: {
     colors: {
       primary: withOpacityValue('primary-color'),

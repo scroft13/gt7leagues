@@ -7,8 +7,6 @@ const supabase = createClient(
 const userStore = writable();
 supabase.auth.getSession().then(({ data }) => {
   userStore.set(data.session?.user);
-  data.session?.user.id;
-  data.session?.user.email ?? "";
 });
 supabase.auth.onAuthStateChange((event, session) => {
   if (event == "SIGNED_IN" && session) {
@@ -79,8 +77,8 @@ const db = {
       const response = await supabase.from("userInfo").select("imageUrl").match({ username }).single();
       return response;
     },
-    async setUserPic(url, user_id2) {
-      const response = await supabase.from("userInfo").update({ imageUrl: url }).eq("user_id", user_id2);
+    async setUserPic(url, user_id) {
+      const response = await supabase.from("userInfo").update({ imageUrl: url }).eq("user_id", user_id);
       return response;
     }
   },
@@ -206,6 +204,35 @@ const db = {
         posts
       }).eq("id", leagueId);
       return leagues;
+    }
+  },
+  messages: {
+    async sendUserMessage(message) {
+      let messages = [];
+      await supabase.from("userInfo").select("*").eq("username", message.receiver).single().then(
+        (data) => {
+          messages = data.data.receivedMessages ?? [];
+        },
+        (error) => {
+          return error;
+        }
+      );
+      messages.push(message);
+      await supabase.from("userInfo").update({
+        receivedMessages: messages
+      }).eq("username", message.receiver);
+      let sentMessages = [];
+      await supabase.from("userInfo").select("*").eq("username", message.sender).single().then(
+        (data) => {
+          sentMessages = data.data.sentMessages ?? [];
+        },
+        (error) => {
+          return error;
+        }
+      );
+      sentMessages.push(message);
+      const response = await supabase.from("userInfo").update({ sentMessages }).eq("username", message.sender);
+      return response;
     }
   }
 };

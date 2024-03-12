@@ -25,8 +25,17 @@
       await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: 'https://www.gt7leagues.com/password-reset',
       });
-      console.log('Password reset email sent successfully');
+      addToast({
+        id: Math.floor(Math.random() * 1000),
+        message: 'Password Reset Email successfully sent!',
+        type: 'success',
+      });
     } catch (error: any) {
+      addToast({
+        id: Math.floor(Math.random() * 1000),
+        message: 'Error sending password reset email: ' + error.message,
+        type: 'error',
+      });
       console.error('Error sending password reset email:', error.message);
     }
   };

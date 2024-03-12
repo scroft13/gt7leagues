@@ -44,7 +44,6 @@
       });
       console.error('Error uploading image:', error.message);
     } else {
-      console.log('Image uploaded successfully:', data);
       let fileUrl = data.path;
       db.currentUser.setUserPic(fileUrl, userId);
       loading = false;

@@ -39,16 +39,7 @@ export const dismissToast = (id: number) => {
 const publicEventsStore: CalendarEvents[] = await updateEvents();
 export const publicEvents = writable(publicEventsStore);
 // Function to update the store with new items
-export const updatePublicEvents = (newEvent: CalendarEvents) => {
-  // publicEvents.set(newEvent);
-  publicEvents.update((events) => {
-    events.push(newEvent);
-    return events;
-  });
-};
-export const updateListener = (e: any) => {
-  updatePublicEvents(e.new);
-};
+
 // Initial value for the store
 
 async function updateEvents(): Promise<CalendarEvents[]> {
@@ -107,7 +98,6 @@ async function updateEvents(): Promise<CalendarEvents[]> {
       });
     }
   });
-
   return tempEventList;
 }
 

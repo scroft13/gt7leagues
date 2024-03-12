@@ -7,7 +7,7 @@
   import DayGrid from '@event-calendar/day-grid';
   // @ts-ignore
   import TimeGrid from '@event-calendar/time-grid';
-  import type { CalendarEvents, League, ServerEvent } from '$lib/shared';
+  import type { CalendarEvents, League } from '$lib/shared';
   import db, { supabase } from '$lib/db';
   import type { User } from '@supabase/supabase-js';
   import LoginModal from '$lib/components/LoginModal.svelte';
@@ -18,7 +18,7 @@
   import ChevronUp from '@rgossiaux/svelte-heroicons/outline/ChevronUp';
   import ChevronDown from '@rgossiaux/svelte-heroicons/outline/ChevronDown';
   import { goto } from '$app/navigation';
-  import { getCurrentUser, storedUser } from '$lib/stores';
+  import { getCurrentUser, publicEvents, storedUser } from '$lib/stores';
 
   const plugins = [DayGrid, TimeGrid];
   export let data: PageData;
@@ -36,15 +36,7 @@
     center: 'title',
     end: 'today prev,next',
   };
-  let options = {
-    view: view,
-    headerToolbar: headerToolbar,
-    allDaySlot: false,
-    eventClick: (e: any) => {
-      linkToLeague(e);
-    },
-    events: events,
-  };
+
   let showLeagueAddModal = false;
   let showLoginModal = false;
   let showForgotPassword = false;
@@ -54,33 +46,42 @@
   let joinedLeagues: League[] = [];
   let showMoreBlurb = false;
 
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let options = {
+    view: view,
+    headerToolbar: headerToolbar,
+    allDaySlot: false,
+    eventClick: (e: any) => {
+      linkToLeague(e);
+    },
+    events: events,
+  };
 
   onMount(async () => {
-    $storedUser?.username === null ? (setUsername = true) : (setUsername = false);
+    if ($storedUser) {
+      $storedUser.username === null ? (setUsername = true) : (setUsername = false);
+    }
     const {
       data: { subscription: authListener },
-    } = supabase.auth.onAuthStateChange((_, session) => {
+    } = await supabase.auth.onAuthStateChange((_, session) => {
       if (session) {
         user = session.user;
       }
     });
 
-    supabase
-      .channel('publicEvents')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'publicEvents' },
-        handleInserts,
-      )
-      .subscribe();
-    events = await updateEvents();
+    if ($storedUser) {
+      ownedLeagues = (await db.leagues.findOwned($storedUser.user_id)) ?? [];
+      joinedLeagues =
+        (await db.leagues.findJoined($storedUser.username, $storedUser.user_id)) ?? [];
+    }
+
+    events = $publicEvents;
+
     if (clientWidth <= 750) {
       view = 'timeGridDay';
       headerToolbar = {
-        start: '',
-        center: ' dayGridMonth,timeGridWeek,timeGridDay title today,prev,next',
-        end: '',
+        start: 'dayGridMonth,timeGridWeek,timeGridDay',
+        center: 'title',
+        end: 'today prev,next',
       };
       options = {
         view: view,
@@ -108,173 +109,13 @@
         },
       };
     }
-    if (user) {
-      ownedLeagues = (await db.leagues.findOwned(user.id)) ?? [];
-      joinedLeagues = (await db.leagues.findJoined($storedUser?.username ?? '', user.id)) ?? [];
-    }
+
     loading = false;
+
     return () => {
-      authListener?.unsubscribe();
+      authListener.unsubscribe();
     };
   });
-
-  async function updateEvents(): Promise<CalendarEvents[]> {
-    let tempEventList: CalendarEvents[] = [];
-    await db.publicEventsList.all().then((eventList) => {
-      if (eventList) {
-        eventList.forEach((publicEvent: ServerEvent) => {
-          const formattedDateString = publicEvent.start_date?.toLocaleString('en-US', {
-              timeZone: timezone,
-            }),
-            endDateTime = new Date(publicEvent.start_date);
-          endDateTime.setHours(endDateTime.getHours() + publicEvent.duration_hrs);
-          const modifiedDateString = endDateTime.toString();
-          if (!publicEvent.is_series) {
-            tempEventList.push({
-              id: publicEvent.id,
-              start: new Date(formattedDateString),
-              end: new Date(modifiedDateString),
-              title: publicEvent.singleEventName ?? '' + publicEvent.leagueName,
-              extendedProps: {
-                leagueLink: publicEvent.leagueLink,
-              },
-              backgroundColor: generateRandomColor(),
-            });
-          } else {
-            if (publicEvent.end_date) {
-              let datesArray = generateDatesWithInterval(
-                new Date(publicEvent.start_date),
-                new Date(publicEvent.end_date),
-                7,
-              );
-              let eventsArray = datesArray.map((publicEventArrayItem, i) => {
-                const formattedDateString = publicEventArrayItem.toLocaleString('en-US', {
-                    timeZone: timezone,
-                  }),
-                  endDateTime = new Date(publicEventArrayItem);
-                endDateTime.setHours(endDateTime.getHours() + publicEvent.duration_hrs);
-                const modifiedDateString = endDateTime.toString();
-                return {
-                  id: publicEvent.id + i,
-                  start: new Date(formattedDateString),
-                  end: new Date(modifiedDateString),
-                  title: publicEvent.series + ' - ' + publicEvent.leagueName,
-                  extendedProps: {
-                    leagueLink: publicEvent.leagueLink,
-                  },
-                  backgroundColor: generateRandomColor(),
-                };
-              });
-              eventsArray.forEach((x) => {
-                tempEventList.push(x);
-              });
-            } else null;
-          }
-        });
-      }
-    });
-    return tempEventList;
-  }
-
-  const handleInserts = (payload: any) => {
-    if (!payload.new.does_repeat) {
-      const formattedDateString = payload.new.start_date.toLocaleString('en-US', {
-          timeZone: timezone,
-        }),
-        endDateTime = new Date(payload.new.start_date);
-      endDateTime.setHours(endDateTime.getHours() + payload.new.duration_hrs);
-      const modifiedDateString = endDateTime.toString();
-      events.push({
-        id: payload.new.id,
-        start: new Date(formattedDateString),
-        end: new Date(modifiedDateString),
-        title: payload.new.singleEventName ?? '' + payload.new.leagueName,
-        extendedProps: {
-          leagueLink: payload.leagueLink,
-        },
-        backgroundColor: generateRandomColor(),
-      });
-    } else {
-      if (payload.new.end_date) {
-        let datesArray = generateDatesWithInterval(
-          new Date(payload.new.start_date),
-          new Date(payload.new.end_date),
-          7,
-        );
-        let eventsArray = datesArray.map((publicEventArrayItem, i) => {
-          const formattedDateString = publicEventArrayItem.toLocaleString('en-US', {
-              timeZone: timezone,
-            }),
-            endDateTime = new Date(publicEventArrayItem);
-          endDateTime.setHours(endDateTime.getHours() + payload.new.duration_hrs);
-          const modifiedDateString = endDateTime.toString();
-          return {
-            id: payload.new.id + i,
-            start: new Date(formattedDateString),
-            end: new Date(modifiedDateString),
-            title: payload.new.series + payload.new.leagueName,
-            extendedProps: {
-              type: payload.new.contact_type,
-              email: payload.new.email,
-              discord: payload.new.discord_server,
-              class: payload.new.vehicle_class,
-              info: payload.new.event_info,
-            },
-            backgroundColor: generateRandomColor(),
-          };
-        });
-        eventsArray.forEach((x) => {
-          events.push(x);
-        });
-      } else null;
-
-      ec.updateEvents();
-    }
-
-    const existingCalendar = document.getElementById('ec');
-    if (existingCalendar) {
-      existingCalendar.remove();
-    }
-  };
-
-  function generateDatesWithInterval(startDate: Date, endDate: Date, intervalDays: number) {
-    const dates = [];
-    let currentDate = new Date(startDate);
-
-    while (currentDate <= endDate) {
-      dates.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + intervalDays);
-    }
-    return dates;
-  }
-
-  function clamp(value: number, min: number, max: number) {
-    return Math.min(Math.max(value, min), max);
-  }
-
-  function generateRandomColor() {
-    // Generate random RGB values
-    const red = Math.floor(Math.random() * 256);
-    const green = Math.floor(Math.random() * 256);
-    const blue = Math.floor(Math.random() * 256);
-
-    // Calculate brightness using the formula: 0.299*R + 0.587*G + 0.114*B
-    const brightness = 0.299 * red + 0.587 * green + 0.114 * blue;
-
-    // Choose whether to make the color lighter or darker based on brightness
-    const isLightColor = brightness > 100;
-
-    // Adjust brightness to ensure good contrast with white text
-    const adjustValue = isLightColor ? -50 : 50;
-
-    // Apply the adjustment to each color component
-    const adjustedRed = clamp(red + adjustValue, 0, 255);
-    const adjustedGreen = clamp(green + adjustValue, 0, 255);
-    const adjustedBlue = clamp(blue + adjustValue, 0, 255);
-
-    // Return the RGB string
-    return `rgba(${adjustedRed}, ${adjustedGreen}, ${adjustedBlue}, .8)`;
-  }
 
   function linkToLeague(e: any) {
     goto('/league/' + e.event.extendedProps.leagueLink);
@@ -293,6 +134,12 @@
     showLoginModal = true;
     isLoginMode = loginMode;
   }
+  storedUser.subscribe(async (user) => {
+    if (user) {
+      ownedLeagues = (await db.leagues.findOwned(user.user_id)) ?? [];
+      joinedLeagues = (await db.leagues.findJoined(user.username, user.user_id)) ?? [];
+    }
+  });
 </script>
 
 {#if showLoginModal}
@@ -300,25 +147,21 @@
     open={showLoginModal}
     {isLoginMode}
     on:close={async (data) => {
-      if (user) {
+      if (data.detail.user) {
         const currentUser = await getCurrentUser();
-        if (currentUser) {
-          storedUser.update(() => {
-            return {
-              email: currentUser.email,
-              created_at: currentUser.created_at,
-              imageUrl: currentUser.imageUrl,
-              user_id: currentUser.user_id,
-              username: currentUser.username,
-              sentMessages: [],
-              receivedMessages: [],
-            };
-          });
-        }
+
+        storedUser.update(() => {
+          return currentUser;
+        });
+
         showLoginModal = false;
         user = data.detail.user;
-        ownedLeagues = (await db.leagues.findOwned(user?.id ?? '')) ?? [];
-        joinedLeagues = (await db.leagues.findJoined(user?.email ?? '', user?.id ?? '')) ?? [];
+        {
+          ownedLeagues;
+        }
+        {
+          joinedLeagues;
+        }
         checkUsernameOnList();
       } else {
         showLoginModal = false;
@@ -447,7 +290,7 @@
         </div>
       {/if}
 
-      <div class="w-full felx-grow">
+      <div class="w-full">
         <div class="mt-8 mx-4 relative">
           <Calendar {plugins} {options} bind:this={ec} />
         </div>

@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit';
 export async function load({ params }) {
   const { data: leagues } = await supabase
     .from('leagues')
-    .select('seriesEvents')
+    .select('*')
     .eq('leagueLink', params.league_name)
     .single();
   if (params.series) {

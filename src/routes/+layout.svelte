@@ -64,7 +64,19 @@
     }
   }
 
-  $: username = $storedUser?.username;
+  storedUser.subscribe((user) => {
+    if (user) {
+      supabase.storage
+        .from('userImages')
+        .download(user?.imageUrl ?? '')
+        .then((result) => {
+          if (result.data) {
+            imageData = result.data;
+            urlImage = URL.createObjectURL(new Blob([imageData]));
+          }
+        });
+    }
+  });
 </script>
 
 <Toasts />
@@ -121,8 +133,8 @@
     <img src={'/GT7L.png'} alt={'User Image'} class="h-10" />
   </a>
   {#if $storedUser}
-    <a href={'/user/' + username} class="h-10 w-10">
-      {#if $storedUser.imageUrl}
+    <a href={'/user/' + $storedUser.username} class="h-10 w-10">
+      {#if $storedUser && urlImage}
         <div
           style="background-image: url('{urlImage}');"
           class="rounded-full bg-cover bg-center w-10 h-10"
