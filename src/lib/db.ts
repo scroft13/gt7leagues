@@ -278,7 +278,6 @@ export default {
   },
   messages: {
     async sendUserMessage(message: Message) {
-      // console.log(message, recipient, sender);
       let messages: Message[] = [];
       await supabase
         .from('userInfo')

@@ -66,7 +66,6 @@
 
   storedUser.subscribe((user) => {
     if (user) {
-      console.log(user);
       supabase.storage
         .from('userImages')
         .download(user?.imageUrl ?? '')

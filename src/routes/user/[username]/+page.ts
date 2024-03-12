@@ -1,6 +1,5 @@
-import db, { supabase } from '$lib/db.js';
+import { supabase } from '$lib/db.js';
 import { storedUser } from '$lib/stores.js';
-import { error } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params }) {
@@ -25,7 +24,5 @@ export async function load({ params }) {
       userInfo: userInfo.data,
       isCurrentUser,
     };
-  }
-
-  error(404, 'Not found');
+  } else return;
 }

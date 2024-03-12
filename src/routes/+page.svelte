@@ -147,7 +147,7 @@
     open={showLoginModal}
     {isLoginMode}
     on:close={async (data) => {
-      if (user) {
+      if (data.detail.user) {
         const currentUser = await getCurrentUser();
 
         storedUser.update(() => {

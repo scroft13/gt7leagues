@@ -48,7 +48,7 @@
 
   onMount(() => {
     setTimeout(() => {
-      //   //todo set mark as read
+      //   //TODO set mark as read
       // if (stillOpen && initialMessage.message) {
       //   // account?.updateMessageAsViewed(replyMessage.message.id);
       //   dispatch('markViewed', initialMessage.message);
@@ -57,8 +57,6 @@
   });
 
   async function sendMessage(messageForm: FormData) {
-    console.log(messageForm);
-    console.log(initialMessage);
     if (initialMessage.replyMessage) {
       await db.messages
         .sendUserMessage({
