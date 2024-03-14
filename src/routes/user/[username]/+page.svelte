@@ -59,14 +59,12 @@
   let urlImage: string;
 
   const checkImage = async () => {
-    console.log(data);
     if (data.userInfo.imageUrl) {
       const image = await supabase.storage
         .from('userImages')
         .download(data.userInfo.imageUrl ?? '');
 
       if (image) {
-        console.log(image);
         if (image?.error) {
           throw image.error;
         } else if (image.data) {
