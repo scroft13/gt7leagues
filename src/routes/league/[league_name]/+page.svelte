@@ -203,7 +203,7 @@
       {#each leagueInfo.seriesEvents as series}
         <a
           href="/league/{leagueLink}/{series.name}"
-          class="flex w-full gap-2 justify-evenly flex-col lg:flex-row border p-2 rounded shadow-2xl mt-2"
+          class="flex w-full gap-2 justify-evenly flex-col lg:flex-row border p-2 rounded mt-2"
         >
           <p class="font-bold text-lg">{series.name}</p>
           <div class="flex flex-col gap-[1px]">
