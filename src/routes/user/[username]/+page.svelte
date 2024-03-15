@@ -59,14 +59,18 @@
   let urlImage: string;
 
   const checkImage = async () => {
-    const image = await supabase.storage.from('userImages').download(data.userInfo.imageUrl ?? '');
+    if (data.userInfo.imageUrl) {
+      const image = await supabase.storage
+        .from('userImages')
+        .download(data.userInfo.imageUrl ?? '');
 
-    if (image) {
-      if (image?.error) {
-        throw image.error;
-      } else if (image.data) {
-        imageData = image.data;
-        urlImage = URL.createObjectURL(new Blob([imageData]));
+      if (image) {
+        if (image?.error) {
+          throw image.error;
+        } else if (image.data) {
+          imageData = image.data;
+          urlImage = URL.createObjectURL(new Blob([imageData]));
+        }
       }
     }
   };
