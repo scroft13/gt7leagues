@@ -55,6 +55,7 @@
       close();
     }
   };
+  $: console.log(file);
 </script>
 
 <TransitionRoot as="div" show={open} appear={true}>
@@ -98,8 +99,8 @@
           <input type="file" accept="image/*" on:change={handleFileChange} class="mb-4" />
           <button
             on:click={uploadImage}
-            class="bg-blue-500 text-white px-4 py-2 rounded mb-6"
-            disabled={loading}>Upload Image</button
+            class="btn-primary"
+            disabled={loading || file === undefined}>Upload Image</button
           >
         </div>
       </div>

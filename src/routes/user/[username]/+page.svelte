@@ -451,8 +451,7 @@
                     </div>
                     <p class="font-semibold my-4">Your inbox is empty</p>
                     <p class="secondary-text lg:w-2/3">
-                      That's alright. When you get one, it will appear here. Members use messages to
-                      ask about products and services and to ask for a quote.
+                      That's alright. When you get one, it will appear here.
                     </p>
                   </div>
                 {/if}
@@ -582,8 +581,7 @@
                     </div>
                     <p class="font-semibold my-4">Your sent messages is empty</p>
                     <p class="secondary-text lg:w-2/3">
-                      That's alright. When you send one, it will appear here. Members use messages
-                      to ask about products and services and to ask for a quote.
+                      That's alright. When you send one, it will appear here.
                     </p>
                   </div>
                 {/if}
